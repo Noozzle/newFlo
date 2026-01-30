@@ -163,3 +163,24 @@
   ├── live_trades.db        # SQLite база трейдів
   ├── logs/                 # Логи
   └── app/                  # Код
+  
+
+
+
+
+[Unit]
+Description=FloTrader Live Trading Bot
+After=network.target
+
+[Service]
+Type=simple
+User=rocky
+Group=rocky
+WorkingDirectory=/opt/newFlo
+ExecStart=/opt/newFlo/venv/bin/python -m app live --config config.yaml
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

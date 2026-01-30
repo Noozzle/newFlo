@@ -51,7 +51,7 @@ class DataRecorder:
         """Start the data recorder."""
         self._running = True
         self._writer_task = asyncio.create_task(self._writer_loop())
-        logger.info("Data recorder started")
+        logger.info(f"Data recorder started, saving to: {self._base_dir}")
 
     async def stop(self) -> None:
         """Stop the data recorder and flush buffers."""
@@ -80,6 +80,8 @@ class DataRecorder:
         # Only record when candle is closed, not intermediate updates
         if not event.is_closed:
             return
+
+        logger.debug(f"Recording kline: {event.symbol} {event.interval.value} closed at {event.timestamp}")
 
         data = {
             "timestamp": event.timestamp.strftime("%Y-%m-%d %H:%M:%S.%f"),

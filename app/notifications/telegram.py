@@ -68,13 +68,27 @@ class TelegramNotifier:
             # Test connection
             me = await self._bot.get_me()
             logger.info(f"Telegram bot connected: @{me.username}")
+
+            # Send startup message
+            await self._send(
+                "🚀 <b>FloTrader Started</b>\n\n"
+                f"Bot connected and ready to trade.\n"
+                f"Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
+            )
         except Exception as e:
             logger.error(f"Failed to connect Telegram bot: {e}")
             self._enabled = False
 
     async def stop(self) -> None:
         """Stop the notifier."""
-        pass
+        if self._enabled and self._bot:
+            try:
+                await self._send(
+                    "🛑 <b>FloTrader Stopped</b>\n\n"
+                    f"Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
+                )
+            except Exception:
+                pass
 
     async def _send(self, message: str, parse_mode: str = "HTML") -> bool:
         """
