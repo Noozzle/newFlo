@@ -1,0 +1,77 @@
+Ти — senior Python engineer (algo-trading, asyncio, websockets) + code auditor. Твоє завдання: виправити існуючий проєкт так, щоб LIVE і BACKTEST працювали через ОДНЕ ядро і давали максимально однакову поведінку, а також щоб LIVE був стабільний (reconnect, reconcile, SL/TP на біржі). Працюй тільки з тим кодом, який я прикріпив (zip) і з його реальною структурою. Не вигадуй файлів/функцій, яких немає — якщо треба новий файл/функція, створи і додай у diff.
+
+Вхідні артефакти:
+1) app.zip — увесь код
+2) 20260130_103204.zip — приклад репорту backtest’у (папка reports/<run_id>/)
+
+Цілі (must-have):
+A) LIVE повинен використовувати той самий EventBus і той самий Engine loop, що й BACKTEST (різниця тільки в DataFeed та ExchangeAdapter).
+B) LIVE має реально торгувати: баланс/позиції ініціалізуються (REST snapshot), далі оновлюються через private WS events.
+C) SL/TP мають виставлятися НА БІРЖІ при вході в угоду; система повинна вміти відновити стан після рестарту (reconcile).
+D) BACKTEST і LIVE мають однакову market-data логіку: trades/orderbook/klines заходять у Strategy в однаковому форматі. Якщо backtest не підписує trades — виправити.
+E) Усі виправлення надати як patch/diff, а також короткий список “що було зламано / що виправлено”.
+
+Обмеження:
+- Не змінюй архітектуру радикально, але можеш зробити необхідні refactor’и для parity та стабільності.
+- Пиши мінімальні зміни: patch-style (diff), не переписуй усе.
+- Не додавай зайвих залежностей.
+- Python 3.11+.
+- Ключі API/Telegram тільки через ENV.
+- Вся логіка часу: UTC.
+
+План роботи (виконай послідовно, не пропускай):
+1) Розпакуй app.zip, побудуй карту модулів і шляхів виконання для LIVE та BACKTEST:
+   - де створюється EventBus
+   - де створюється Engine
+   - як DataFeed/Exchange публікують події
+   - хто їх споживає
+2) Знайди причини, чому LIVE ≠ BACKTEST або LIVE не торгує / не бачить ринок:
+   - різні EventBus між компонентами
+   - Portfolio стартує з 0 і не отримує balance snapshot
+   - asyncio.create_task у WS callback без running loop
+   - Backtest не подає trades.csv у Strategy
+   - SL/TP reason mapping в live відрізняється від backtest
+3) Зроби точні виправлення:
+
+3.1) Єдиний EventBus:
+- Engine має приймати event_bus як dependency (DI), а не створювати власний.
+- __main__/CLI має передати один bus у data_feed + exchange + engine.
+
+3.2) Стабільний publish з WS callback’ів:
+- Якщо WS callback викликається не в asyncio loop — заміни create_task на asyncio.run_coroutine_threadsafe(..., loop).
+- Збережи loop у start(): self._loop = asyncio.get_running_loop().
+
+3.3) Reconcile / snapshots для live:
+- На старті live зроби REST snapshot: balance, positions, open orders.
+- Опублікуй BalanceEvent/PositionEvent/OrderUpdateEvent у bus, щоб portfolio/order_manager синхронізувались.
+- Далі підписка private WS підтримує актуальний стан.
+
+3.4) Strategy parity:
+- HistoricalDataFeed за замовчуванням підписує trades/orderbook/klines (канали конфігуровані).
+- У Engine/Strategy гарантуй однакові типи подій.
+- Якщо orderbook в історії — top-of-book, то live data feed теж нормалізує до top-of-book event.
+
+3.5) SL/TP у live:
+- При створенні entry order використовуй orderLinkId (наприклад entry_<symbol>_<ts>) щоб мати кореляцію.
+- Для attached TP/SL або trading-stop: збережи мапу entryLinkId -> (tp, sl).
+- При отриманні order/execution update визначай, чи це TP/SL через stopOrderType/parentOrderLinkId/orderLinkId і формуй FillEvent з reason=TP/SL.
+- Backtest і live мають однаково формувати FillEvent: order_id, reason, fee, price, qty, side, timestamp.
+
+3.6) Portfolio updates:
+- Portfolio має хендлери BalanceEvent, PositionEvent, FillEvent і підтримує equity/positions.
+- RiskManager не може бути прив’язаний до 0 балансу — без snapshot заборони відкривати угоди (graceful блок), або seed баланс.
+
+4) Додай/онови тести (pytest) мінімум:
+- test_live_wiring: перевір, що engine/event_bus один і той самий в live init path (можна unit на init функцію).
+- test_threadsafe_publish: симулюй callback поза loop і переконайся, що publish працює через run_coroutine_threadsafe.
+- test_backtest_includes_trades: перевір що historical feed емiтить MarketTradeEvent якщо trades.csv є.
+
+5) Поверни результат:
+- 1) Список виявлених проблем
+- 2) Патч/diff по файлах (git diff style)
+- 3) Коротка інструкція “як перевірити”: команда backtest, команда live (testnet), і що дивитись в логах.
+- 4) Якщо бачиш логічну помилку в алгоритмі orderflow_1m (виходить не скальп, дивні hold time) — запропонуй мінімальні правки параметрів/умов, але не змінюй стратегію радикально.
+
+Дані Bybit V5:
+- Використовуй only Bybit official docs V5 для полів order/execution/wallet streams та REST endpoints.
+- Не вигадуй назви полів. Якщо є сумніви — знайди в коді/доках і посилайся на них в коментарях.

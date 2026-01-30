@@ -1,0 +1,89 @@
+# FloTrader Configuration
+# =======================
+
+# Trading mode: "live" or "backtest"
+mode: backtest
+
+# Symbols configuration
+symbols:
+  # Symbols to actively trade
+  trade:
+    - SOLUSDT
+    - SUIUSDT
+    - DOGEUSDT
+    - XRPUSDT
+  # Symbols to record data only (no trading)
+  record:
+    - ETHUSDT
+    - SOLUSDT
+
+# Data storage settings
+data:
+  base_dir: live_data
+  format: csv  # csv or parquet
+  rotation_hours: 1
+  write_buffer_size: 100
+
+# Strategy configuration
+strategy:
+  name: orderflow_1m
+  params:
+    # Orderflow analysis
+    imbalance_threshold: 0.2  # Buy/sell imbalance threshold (0-1) - lowered for testing
+    delta_threshold: 0.1      # Orderbook delta threshold - lowered for testing
+    lookback_trades: 100      # Number of trades to analyze
+
+    # Risk/Reward
+    rr_ratio: 3.0             # Target R:R ratio (TP = 3x SL)
+    min_wr: 0.35              # Minimum target win rate
+
+    # Stop Loss calculation
+    atr_period: 14            # ATR period for SL
+    atr_multiplier: 3.0       # ATR multiplier for SL distance (must cover fees + slippage)
+
+    # Filters
+    trend_period: 15          # 15m candles for trend filter
+    cooldown_seconds: 60      # Cooldown between trades
+
+# Risk management
+risk:
+  max_position_pct: 1.0       # Risk 1% of equity per trade
+  max_daily_loss_pct: 5.0     # Stop trading after X% daily loss
+  max_concurrent_trades: 3    # Max open positions
+  max_drawdown_pct: 50.0      # Max drawdown before stopping
+  use_trailing_stop: false    # Enable trailing stop
+  trailing_stop_pct: 1.0      # Trailing stop distance %
+
+# Trading costs (for backtest)
+costs:
+  fees_bps: 6                 # Trading fees in basis points (6 = 0.06%)
+  slippage_bps: 2             # Estimated slippage in bps
+
+# Telegram notifications
+telegram:
+  enabled: true
+  token: "8084345225:AAE5f_4G0mtbGL3mX8W2QnSNORyen9ifJFo"    # Bot token from @BotFather
+  chat_id: "435736552"
+  notify_on_entry: true
+  notify_on_exit: true
+  notify_on_sl_tp: true
+  notify_on_error: true
+  notify_daily_summary: true
+
+# Bybit exchange settings
+bybit:
+  testnet: false               # Use testnet for safe testing first!
+  category: linear            # Product type (linear = USDT perps)
+  leverage: 10                # Default leverage
+  recv_window: 5000           # API recv window in ms
+  # Get API keys from testnet.bybit.com or bybit.com
+  # Set via ENV: BYBIT_API_KEY and BYBIT_API_SECRET
+  api_key: "6TetnJMPCP60aLwf9F"
+  api_secret: "KdF0KakMUPn46bABwdADvv24eKKOUMITOBWr"
+
+# Backtest-specific settings
+backtest:
+  initial_capital: 10000   # Starting capital in USDT
+  start_date: "2026-01-19"    # Optional: YYYY-MM-DD
+  end_date: "2026-01-29"      # Optional: YYYY-MM-DD
+  symbols: null               # Override symbols (or use symbols.trade)

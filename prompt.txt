@@ -1,0 +1,120 @@
+Ти — senior Python engineer (algo-trading/market data). Згенеруй production-ready Python проєкт з нуля для Bybit, який має 2 режими: BACKTEST і LIVE. Ключова вимога: бек-тест повинен працювати через ту саму event-driven “петлю” і ті ж самі компоненти, що й live (міняється лише DataFeed та ExchangeAdapter). Пиши код повністю, без “TODO”, з типами, логами, конфігами, README і прикладами запуску. Якщо щось неможливо знати без даних — зроби авто-детекцію схеми CSV (прочитай header, визнач timestamp колонку) і зроби адаптер.
+
+Вхідні дані (історичні/записані з біржі) збережені у структурі:
+live_data/BTCUSDT/1m.csv
+live_data/BTCUSDT/15m.csv
+live_data/BTCUSDT/orderbook.csv
+live_data/BTCUSDT/trades.csv
+(і аналогічно для інших монет: live_data/<SYMBOL>/*)
+
+LIVE:
+- Дані з Bybit отримуємо по WebSocket (public) + приватні (positions/orders/executions/balance).
+- Обов’язково записувати raw дані по кожній монеті в CSV/Parquet у live_data/<SYMBOL>/... (ротація по даті/годині), навіть якщо монета не торгується (режим “record-only”).
+- Має бути конфіг файл, який менеджить список монет:
+  - trade_symbols: монети, якими торгуємо
+  - record_symbols: монети, по яких лише накопичуємо дані
+- В LIVE режимі система:
+  - відслідковує баланс акаунту, активні позиції, активні ордери
+  - при вході в угоду ОБОВ’ЯЗКОВО одразу виставляє Stop Loss і Take Profit НА БІРЖІ (Bybit), а також вміє відновити стан після рестарту (reconcile з біржею)
+  - пише всі трейди (fills, entry/exit, PnL, fees, slippage estimate) у журнал (SQLite або CSV + дублювання в папку run’а)
+  - надсилає повідомлення в Telegram: вхід, вихід, SL/TP, помилки, реконект, денний підсумок
+
+BACKTEST:
+- Бектест має відтворювати лайв-логіку:
+  - один і той самий Strategy/SignalEngine, RiskManager, OrderManager, Portfolio, Reporter
+  - різниця лише в адаптері даних (HistoricalDataFeed, що читає CSV і емулює події) і адаптері біржі (SimulatedExchangeAdapter)
+- Бектест читає CSV файли (1m, 15m, orderbook, trades) і подає події у спільну чергу (event bus) у часовому порядку.
+- Симуляція виконання ордерів:
+  - Market: fill по best bid/ask (залежно від side) + configurable slippage (ticks або bps)
+  - Limit: fill коли ціна перетинає рівень; дозволити часткові філи опційно (можна спрощено: або filled, або ні)
+  - Fees: конфіговані, застосовуються в PnL і в sizing
+- Репортинг бектесту:
+  - кожен запуск створює окрему папку reports/<run_id_timestamp>/
+  - зберігає: config snapshot, trades.csv, equity_curve.csv, metrics.json, summary.md (або html)
+  - метрики: win rate, RR (gross & net), expectancy, profit factor, max drawdown, avg trade, avg hold time, fees paid, slippage impact estimate, number of trades, long/short split, streaks
+  - обов’язково рахувати net-метрики з урахуванням fees+slippage
+- Додай можливість backtest на підмножині дат (--from --to) і по конкретному symbol.
+
+Стратегія:
+- Реалізуй базову “orderflow scalping” стратегію на 1m з використанням trades + orderbook, і контекстом з 15m (наприклад тренд/фільтр волатильності).
+- Цільові параметри: WR ~40% і RR 1:3 (TP=3R), але код має бути параметризований.
+- Стратегія повинна:
+  - генерувати EntrySignal, StopLoss, TakeProfit
+  - НЕ торгувати при високих costs відносно SL (зроби fee-aware sizing guard: якщо costs > X% від SL distance — пропустити)
+  - мати time-exit опційно (але не ламати RR; net R threshold)
+- Важливо: система повинна бути framework’ом: можна додати нові стратегії як плагіни/класи.
+
+Архітектура (вимога):
+- Event-driven ядро:
+  - EventBus/Queue
+  - Events: MarketTradeEvent, OrderBookEvent, KlineEvent(1m/15m), TimerEvent, OrderUpdateEvent, FillEvent, BalanceEvent, PositionEvent
+- Інтерфейси:
+  - DataFeed (LiveDataFeed, HistoricalDataFeed)
+  - ExchangeAdapter (BybitLiveAdapter, SimulatedExchangeAdapter)
+  - Storage (DataRecorder, TradeStore, StateStore)
+- Компоненти:
+  - Strategy (orderflow_1m.py)
+  - RiskManager (position sizing, SL/TP, max daily loss, max concurrent trades)
+  - OrderManager (create/cancel/modify, ensure SL/TP set on exchange, reconcile)
+  - Portfolio/AccountState (balance, equity, positions, open orders)
+  - Reporter (metrics + artifacts)
+  - TelegramNotifier
+- Всі важливі дані логувати структуровано (loguru або стандартний logging + JSON formatter).
+- Код має бути типізований (typing, pydantic для конфігів), лінт/формат (ruff/black), тести (pytest) хоча б на core: event bus, simulated fills, metrics.
+
+Bybit інтеграція:
+- Використовуй Bybit API V5 (REST + WebSocket) для:
+  - place order (market/limit)
+  - set trading stop / SL/TP (або через параметри ордеру, залежно від API)
+  - отримання positions, orders, executions, wallet balance
+  - public WS: trades, orderbook, kline (1m, 15m)
+  - private WS: order, execution, position, wallet
+- Не хардкодь ключі: тільки через ENV (BYBIT_API_KEY, BYBIT_API_SECRET, BYBIT_TESTNET, etc.)
+- Додай robust reconnection/backoff, heartbeat, resubscribe, rate-limit handling.
+- Поясни в README як запустити на testnet і mainnet.
+
+Конфіг:
+- config.yaml (або config.toml), приклад:
+  - mode: live/backtest
+  - symbols:
+      trade: [BTCUSDT, ...]
+      record: [ETHUSDT, ...]
+  - data:
+      base_dir: live_data
+      formats: csv/parquet
+  - strategy params
+  - risk params
+  - costs: fees_bps, slippage_bps (для backtest)
+  - telegram: token, chat_id
+  - bybit: testnet flag, category (linear), leverage, etc.
+- CLI:
+  - python -m app live --config config.yaml
+  - python -m app backtest --config config.yaml --symbol BTCUSDT --from 2025-12-01 --to 2025-12-31
+  - python -m app report --run reports/<run_id>/ (опційно, якщо треба перерахунок)
+
+Вимоги до результату:
+1) Дай повну структуру репозиторію (дерево файлів).
+2) Наведи повний код усіх файлів (або патчами, але щоб можна було зібрати проєкт 1:1).
+3) Дай pyproject.toml (або requirements.txt) з залежностями і версіями “без фанатизму”.
+4) README.md з покроковим запуском (live/backtest), описом конфігу, прикладом Telegram повідомлень.
+5) Додай приклад “sample_data_loader.py”, який уміє прочитати live_data/BTCUSDT/*.csv та показати, що схема розпізналась (columns, timestamp parsing).
+6) Забезпеч, що бек-тест і лайв використовують спільний Engine (однакова логіка обробки подій).
+
+Додаткові нюанси:
+- Час: все в UTC, коректний парсинг timestamp (може бути з мікросекундами).
+- Запис: не блокуй головний цикл — async writer або черга на диск.
+- Відновлення після рестарту: reconcile з біржею, щоб не “забути” позицію/ордера.
+- Безпека: API keys не логувати, не писати в файли.
+
+Почни з:
+A) repo tree
+B) короткий опис модулів
+C) потім згенеруй код файлами в логічному порядку (core -> adapters -> strategy -> reporting -> cli -> tests).
+
+
+
+
+
+
+python -m app backtest --config config.yaml --from 2026-01-19 --to 2026-01-29 --log-level INFO
+-m app backtest -c config.yaml --from 2026-01-19 --to 2026-01-29 --log-level INFO 2>&1)
