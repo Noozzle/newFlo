@@ -47,11 +47,36 @@ class DataRecorder:
         self._file_handles: dict[str, Any] = {}
         self._current_rotation: dict[str, str] = {}
 
-    async def start(self) -> None:
+    async def start(self, symbols: list[str] | None = None) -> None:
         """Start the data recorder."""
         self._running = True
         self._writer_task = asyncio.create_task(self._writer_loop())
+
+        # Create directories and empty files with headers for symbols
+        if symbols:
+            await self._create_initial_files(symbols)
+
         logger.info(f"Data recorder started, saving to: {self._base_dir}")
+
+    async def _create_initial_files(self, symbols: list[str]) -> None:
+        """Create initial CSV files with headers for all symbols."""
+        file_configs = [
+            ("1m.csv", ["timestamp", "open", "high", "low", "close", "volume"]),
+            ("15m.csv", ["timestamp", "open", "high", "low", "close", "volume"]),
+            ("trades.csv", ["timestamp", "price", "amount", "side"]),
+            ("orderbook.csv", ["timestamp", "bid_price", "bid_size", "ask_price", "ask_size", "mid_price"]),
+        ]
+
+        for symbol in symbols:
+            symbol_dir = self._base_dir / symbol
+            symbol_dir.mkdir(parents=True, exist_ok=True)
+
+            for filename, headers in file_configs:
+                file_path = symbol_dir / filename
+                if not file_path.exists():
+                    with open(file_path, "w") as f:
+                        f.write(",".join(headers) + "\n")
+                    logger.info(f"Created {file_path}")
 
     async def stop(self) -> None:
         """Stop the data recorder and flush buffers."""

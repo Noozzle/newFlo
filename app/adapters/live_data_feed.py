@@ -213,6 +213,10 @@ class LiveDataFeed(DataFeed):
                 timestamp = datetime.utcfromtimestamp(int(kline.get("start", 0)) / 1000)
                 is_closed = kline.get("confirm", False)
 
+                # Log closed candles
+                if is_closed:
+                    logger.info(f"Kline CLOSED: {symbol} {interval} at {timestamp}")
+
                 interval_enum = Interval.M1 if interval == "1m" else Interval.M15
 
                 event = KlineEvent(

@@ -165,7 +165,8 @@ async def _run_live(config: Config) -> None:
 
     # Start services
     await telegram.start()
-    await recorder.start()
+    all_symbols = list(set(config.symbols.trade + config.symbols.record))
+    await recorder.start(symbols=all_symbols)
     await trade_store.initialize()
 
     try:
