@@ -47,8 +47,8 @@ strategy:
 
 # Risk management
 risk:
-  max_position_pct: 1.0       # Risk 1% of equity per trade
-  max_daily_loss_pct: 5.0     # Stop trading after X% daily loss
+  max_position_pct: 2.0       # Risk 1% of equity per trade
+  max_daily_loss_pct: 3.0     # Stop trading after X% daily loss
   max_concurrent_trades: 3    # Max open positions
   max_drawdown_pct: 50.0      # Max drawdown before stopping
   use_trailing_stop: false    # Enable trailing stop
