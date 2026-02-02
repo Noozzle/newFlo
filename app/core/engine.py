@@ -121,6 +121,9 @@ class Engine:
         self._current_time = event.timestamp
         self._current_prices[event.symbol] = event.close
 
+        # Check for new trading day (reset daily loss limit) - needed for live mode
+        self._risk_manager.check_new_day(event.timestamp)
+
         # Forward to strategy
         await self._strategy.on_kline(event)
 
