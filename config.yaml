@@ -39,7 +39,7 @@ strategy:
 
     # Stop Loss calculation
     atr_period: 14            # ATR period for SL
-    atr_multiplier: 3.0       # ATR multiplier for SL distance (must cover fees + slippage)
+    atr_multiplier: 2.5       # ATR multiplier for SL distance (optimized)
 
     # Filters
     trend_period: 15          # 15m candles for trend filter
@@ -56,7 +56,7 @@ risk:
 
 # Trading costs (for backtest)
 costs:
-  fees_bps: 6                 # Trading fees in basis points (6 = 0.06%)
+  fees_bps: 10                # Trading fees in basis points (Taker: 0.10%)
   slippage_bps: 2             # Estimated slippage in bps
 
 # Telegram notifications
@@ -83,7 +83,7 @@ bybit:
 
 # Backtest-specific settings
 backtest:
-  initial_capital: 10000   # Starting capital in USDT
+  initial_capital: 50   # Starting capital in USDT
   start_date: "2026-01-19"    # Optional: YYYY-MM-DD
   end_date: "2026-01-29"      # Optional: YYYY-MM-DD
   symbols: null               # Override symbols (or use symbols.trade)
