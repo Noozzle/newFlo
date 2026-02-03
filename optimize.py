@@ -9,17 +9,30 @@ import yaml
 
 
 # Parameter combinations to test
+# Round 2: Fine-tune around best ATR=2.5, R:R=3.0 + test other params
 PARAMS = [
-    {"atr_multiplier": 2.5, "rr_ratio": 2.5},
-    {"atr_multiplier": 3.0, "rr_ratio": 2.5},
-    {"atr_multiplier": 2.5, "rr_ratio": 3.0},
-    {"atr_multiplier": 3.0, "rr_ratio": 3.0},
-    {"atr_multiplier": 3.5, "rr_ratio": 3.0},
-    {"atr_multiplier": 3.5, "rr_ratio": 3.5},
+    # Fine-tune ATR around 2.5
+    {"atr_multiplier": 2.0, "rr_ratio": 3.0},
+    {"atr_multiplier": 2.25, "rr_ratio": 3.0},
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0},  # baseline
+    {"atr_multiplier": 2.75, "rr_ratio": 3.0},
+    # Test higher R:R with best ATR
+    {"atr_multiplier": 2.5, "rr_ratio": 3.5},
+    {"atr_multiplier": 2.5, "rr_ratio": 4.0},
+    # Test imbalance threshold
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "imbalance_threshold": 0.15},
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "imbalance_threshold": 0.25},
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "imbalance_threshold": 0.30},
+    # Test delta threshold
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "delta_threshold": 0.05},
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "delta_threshold": 0.15},
+    # Test trend period
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "trend_period": 10},
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "trend_period": 20},
 ]
 
 
-def run_backtest(atr_mult: float, rr_ratio: float) -> dict:
+def run_backtest(params: dict) -> dict:
     """Run single backtest with given parameters."""
 
     # Load config
@@ -27,17 +40,31 @@ def run_backtest(atr_mult: float, rr_ratio: float) -> dict:
         config = yaml.safe_load(f)
 
     # Modify parameters
+    atr_mult = params.get("atr_multiplier", config["strategy"]["params"]["atr_multiplier"])
+    rr_ratio = params.get("rr_ratio", config["strategy"]["params"]["rr_ratio"])
+
     config["strategy"]["params"]["atr_multiplier"] = atr_mult
     config["strategy"]["params"]["rr_ratio"] = rr_ratio
 
+    # Additional optional params
+    if "imbalance_threshold" in params:
+        config["strategy"]["params"]["imbalance_threshold"] = params["imbalance_threshold"]
+    if "delta_threshold" in params:
+        config["strategy"]["params"]["delta_threshold"] = params["delta_threshold"]
+    if "trend_period" in params:
+        config["strategy"]["params"]["trend_period"] = params["trend_period"]
+    if "cooldown_seconds" in params:
+        config["strategy"]["params"]["cooldown_seconds"] = params["cooldown_seconds"]
+
     # Save temp config
-    temp_config = f"config_atr{atr_mult}_rr{rr_ratio}.yaml"
+    param_str = "_".join(f"{k}{v}" for k, v in params.items())
+    temp_config = f"config_{param_str}.yaml"
     with open(temp_config, "w") as f:
         yaml.dump(config, f)
 
     # Run backtest
     print(f"\n{'='*60}")
-    print(f"Running: ATR={atr_mult}, R:R={rr_ratio}")
+    print(f"Running: {params}")
     print(f"{'='*60}")
 
     result = subprocess.run(
@@ -63,8 +90,7 @@ def run_backtest(atr_mult: float, rr_ratio: float) -> dict:
             if metrics_file.exists():
                 with open(metrics_file) as f:
                     metrics = json.load(f)
-                metrics["atr_multiplier"] = atr_mult
-                metrics["rr_ratio"] = rr_ratio
+                metrics["params"] = params
                 metrics["report_dir"] = str(latest)
 
                 # Cleanup temp config
@@ -75,7 +101,7 @@ def run_backtest(atr_mult: float, rr_ratio: float) -> dict:
     # Cleanup temp config
     Path(temp_config).unlink(missing_ok=True)
 
-    return {"atr_multiplier": atr_mult, "rr_ratio": rr_ratio, "error": "No metrics found"}
+    return {"params": params, "error": "No metrics found"}
 
 
 def main():
@@ -86,23 +112,23 @@ def main():
     results = []
 
     for params in PARAMS:
-        metrics = run_backtest(params["atr_multiplier"], params["rr_ratio"])
+        metrics = run_backtest(params)
         results.append(metrics)
 
     # Print summary table
-    print("\n" + "=" * 80)
+    print("\n" + "=" * 100)
     print("OPTIMIZATION RESULTS")
-    print("=" * 80)
-    print(f"{'ATR':>5} {'R:R':>5} {'Trades':>7} {'WinRate':>8} {'PF':>6} {'Net PnL':>10} {'Return':>10} {'MaxDD':>8}")
-    print("-" * 80)
+    print("=" * 100)
+    print(f"{'Parameters':<45} {'Trades':>7} {'WinRate':>8} {'PF':>6} {'Net PnL':>10} {'Return':>10} {'MaxDD':>8}")
+    print("-" * 100)
 
     for r in results:
         if "error" in r:
-            print(f"{r['atr_multiplier']:>5} {r['rr_ratio']:>5} ERROR: {r['error']}")
+            print(f"{str(r['params']):<45} ERROR: {r['error']}")
         else:
+            params_str = ", ".join(f"{k}={v}" for k, v in r['params'].items())
             print(
-                f"{r['atr_multiplier']:>5} "
-                f"{r['rr_ratio']:>5} "
+                f"{params_str:<45} "
                 f"{r['total_trades']:>7} "
                 f"{r['win_rate']:>8} "
                 f"{float(r['profit_factor']):>6.2f} "
@@ -121,8 +147,14 @@ def main():
     valid_results = [r for r in results if "error" not in r and float(r["profit_factor"]) > 0]
     if valid_results:
         best = max(valid_results, key=lambda x: float(x["profit_factor"]))
-        print(f"\nBest by Profit Factor: ATR={best['atr_multiplier']}, R:R={best['rr_ratio']}")
+        print(f"\nBest by Profit Factor: {best['params']}")
         print(f"  PF={best['profit_factor']}, WR={best['win_rate']}, Return={best['return_pct']}")
+
+        # Also find best by return
+        best_return = max(valid_results, key=lambda x: float(x["return_pct"].rstrip("%")))
+        if best_return != best:
+            print(f"\nBest by Return: {best_return['params']}")
+            print(f"  PF={best_return['profit_factor']}, WR={best_return['win_rate']}, Return={best_return['return_pct']}")
 
 
 if __name__ == "__main__":

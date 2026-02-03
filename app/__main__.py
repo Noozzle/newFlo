@@ -25,7 +25,7 @@ def setup_logging(level: str = "INFO") -> None:
     )
     logger.add(
         "logs/flotrader_{time:YYYY-MM-DD}.log",
-        rotation="1 day",
+        rotation="00:00",  # Rotate at midnight (local time)
         retention="30 days",
         level="DEBUG",
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
@@ -121,6 +121,27 @@ def report(run: str) -> None:
 
     logger.info(f"Regenerating report from {report_dir}")
     # TODO: Implement report regeneration from trades.csv
+
+
+@cli.command()
+@click.option("--host", "-h", default="127.0.0.1", help="Host to bind to")
+@click.option("--port", "-p", default=8000, type=int, help="Port to bind to")
+@click.option(
+    "--config", "-c",
+    type=click.Path(exists=True),
+    default="config.yaml",
+    help="Path to configuration file",
+)
+def ui(host: str, port: int, config: str) -> None:
+    """Start the trading calendar web UI."""
+    import uvicorn
+
+    setup_logging("INFO")
+    logger.info(f"Starting FloTrader Calendar UI at http://{host}:{port}")
+
+    from app.ui.server import app
+
+    uvicorn.run(app, host=host, port=port)
 
 
 async def _run_live(config: Config) -> None:

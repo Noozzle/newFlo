@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ date.strftime('%B %d, %Y') }} - FloTrader{% endblock %}
+
+{% block content %}
+<div class="day-container">
+    <!-- Back button and header -->
+    <div class="day-header">
+        <a href="/?year={{ date.year }}&month={{ date.month }}" class="back-btn">&larr; Back to Calendar</a>
+        <h2>{{ date.strftime('%A, %B %d, %Y') }}</h2>
+    </div>
+
+    <!-- Day summary -->
+    <div class="day-summary">
+        <div class="summary-card">
+            <span class="card-label">Total P&L</span>
+            <span class="card-value {% if total_pnl > 0 %}positive{% elif total_pnl < 0 %}negative{% endif %}">
+                {% if total_pnl >= 0 %}+{% endif %}${{ "%.2f"|format(total_pnl) }}
+            </span>
+        </div>
+        <div class="summary-card">
+            <span class="card-label">Trades</span>
+            <span class="card-value">{{ trade_count }}</span>
+        </div>
+        <div class="summary-card">
+            <span class="card-label">Win Rate</span>
+            <span class="card-value">{{ "%.1f"|format(win_rate) }}%</span>
+        </div>
+        <div class="summary-card">
+            <span class="card-label">W / L</span>
+            <span class="card-value">
+                <span class="positive">{{ winning_count }}</span> /
+                <span class="negative">{{ losing_count }}</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Trades table -->
+    {% if trades %}
+    <div class="trades-table-container">
+        <table class="trades-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Symbol</th>
+                    <th>Side</th>
+                    <th>Size</th>
+                    <th>Entry</th>
+                    <th>Exit</th>
+                    <th>P&L</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in trades %}
+                <tr class="{% if trade.closed_pnl > 0 %}win{% else %}loss{% endif %}">
+                    <td>{{ trade.closed_time.strftime('%H:%M:%S') }}</td>
+                    <td>{{ trade.symbol }}</td>
+                    <td class="{% if trade.side == 'Buy' %}buy{% else %}sell{% endif %}">
+                        {{ trade.side }}
+                    </td>
+                    <td>{{ trade.closed_size }}</td>
+                    <td>${{ "%.4f"|format(trade.avg_entry_price) }}</td>
+                    <td>${{ "%.4f"|format(trade.avg_exit_price) }}</td>
+                    <td class="{% if trade.closed_pnl > 0 %}positive{% else %}negative{% endif %}">
+                        {% if trade.closed_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(trade.closed_pnl) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="no-trades">
+        <p>No trades on this day</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -103,14 +103,16 @@ class RiskManager:
 
         # Check daily loss limit (only check when we have actual losses, not profits)
         if self._daily_loss < 0:
-            daily_loss_pct = abs(self._daily_loss) / self._portfolio.balance * 100
-            if daily_loss_pct >= self._config.max_daily_loss_pct:
-                return SizeResult(
-                    approved=False,
-                    size=Decimal("0"),
-                    risk_amount=Decimal("0"),
-                    reason=f"Daily loss limit ({self._config.max_daily_loss_pct}%) reached",
-                )
+            balance = self._portfolio.balance
+            if balance > 0:
+                daily_loss_pct = abs(self._daily_loss) / balance * 100
+                if daily_loss_pct >= self._config.max_daily_loss_pct:
+                    return SizeResult(
+                        approved=False,
+                        size=Decimal("0"),
+                        risk_amount=Decimal("0"),
+                        reason=f"Daily loss limit ({self._config.max_daily_loss_pct}%) reached",
+                    )
 
         # Check drawdown limit
         if self._portfolio.drawdown >= self._config.max_drawdown_pct:
@@ -209,8 +211,21 @@ class RiskManager:
 
         # Check daily loss (only when we have actual losses)
         if self._daily_loss < 0:
-            daily_loss_pct = abs(self._daily_loss) / self._portfolio.balance * 100
+            balance = self._portfolio.balance
+            if balance <= 0:
+                logger.warning(f"Cannot check daily loss: balance={balance}")
+                return False, "Invalid balance"
+            daily_loss_pct = abs(self._daily_loss) / balance * 100
+            logger.debug(
+                f"Daily loss check: loss={self._daily_loss}, balance={balance}, "
+                f"loss_pct={daily_loss_pct:.2f}%, limit={self._config.max_daily_loss_pct}%, "
+                f"current_day={self._current_day}"
+            )
             if daily_loss_pct >= self._config.max_daily_loss_pct:
+                logger.warning(
+                    f"Daily loss limit reached: {daily_loss_pct:.2f}% >= {self._config.max_daily_loss_pct}% "
+                    f"(loss={self._daily_loss}, balance={balance}, day={self._current_day})"
+                )
                 return False, "Daily loss limit reached"
 
         # Check drawdown
@@ -221,28 +236,45 @@ class RiskManager:
 
     def update_daily_loss(self, pnl: Decimal) -> None:
         """Update daily loss tracking."""
+        old_loss = self._daily_loss
         self._daily_loss += pnl
-        if pnl < 0:
-            logger.debug(f"Daily loss updated: {self._daily_loss}")
+        logger.info(
+            f"Daily PnL updated: {pnl:+.4f} (total: {old_loss:.4f} -> {self._daily_loss:.4f}, "
+            f"day={self._current_day})"
+        )
 
     def reset_daily(self) -> None:
         """Reset daily tracking (call at start of new day)."""
         self._daily_loss = Decimal("0")
 
-    def check_new_day(self, event_time: datetime) -> None:
+    def check_new_day(self, event_time: datetime | None = None) -> None:
         """
         Check if we've moved to a new trading day and reset daily loss.
 
+        Uses current UTC time for consistency (crypto markets use UTC).
+
         Args:
-            event_time: Timestamp of current event
+            event_time: Optional timestamp (ignored, uses current UTC time)
         """
-        event_date = event_time.date()
+        from datetime import timezone
+
+        # Always use current UTC time for day boundary check
+        now_utc = datetime.now(timezone.utc)
+        current_date = now_utc.date()
+
         if self._current_day is None:
-            self._current_day = event_date
-        elif event_date > self._current_day:
-            logger.info(f"New trading day: {event_date}, resetting daily loss (was: {self._daily_loss})")
+            logger.info(
+                f"Initializing trading day: {current_date} (UTC {now_utc.strftime('%H:%M:%S')}), "
+                f"daily_loss={self._daily_loss}"
+            )
+            self._current_day = current_date
+        elif current_date > self._current_day:
+            logger.info(
+                f"New trading day: {current_date} (was: {self._current_day}), "
+                f"resetting daily loss (was: {self._daily_loss})"
+            )
             self._daily_loss = Decimal("0")
-            self._current_day = event_date
+            self._current_day = current_date
 
     def should_close_for_time(
         self,
@@ -310,9 +342,11 @@ class RiskManager:
             return False
 
         if self._daily_loss < 0:
-            daily_loss_pct = abs(self._daily_loss) / self._portfolio.balance * 100
-            if daily_loss_pct >= self._config.max_daily_loss_pct:
-                return False
+            balance = self._portfolio.balance
+            if balance > 0:
+                daily_loss_pct = abs(self._daily_loss) / balance * 100
+                if daily_loss_pct >= self._config.max_daily_loss_pct:
+                    return False
 
         if self._portfolio.drawdown >= self._config.max_drawdown_pct:
             return False

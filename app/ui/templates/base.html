@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FloTrader Calendar{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="logo">FloTrader</a>
+        <span class="subtitle">Trading Calendar</span>
+        {% if testnet %}
+        <span class="badge testnet">TESTNET</span>
+        {% else %}
+        <span class="badge mainnet">MAINNET</span>
+        {% endif %}
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>Data from Bybit API</p>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ month_data.month_name }} {{ month_data.year }} - FloTrader{% endblock %}
+
+{% block content %}
+<div class="calendar-container">
+    <!-- Header with navigation -->
+    <div class="calendar-header">
+        <a href="/?year={{ prev_year }}&month={{ prev_month }}" class="nav-btn">&larr; Prev</a>
+        <h2>{{ month_data.month_name }} {{ month_data.year }}</h2>
+        <a href="/?year={{ next_year }}&month={{ next_month }}" class="nav-btn">Next &rarr;</a>
+    </div>
+
+    <!-- Month summary -->
+    <div class="calendar-summary">
+        <div class="summary-item">
+            <span class="label">Month Total</span>
+            <span class="value {% if month_data.month_pnl > 0 %}positive{% elif month_data.month_pnl < 0 %}negative{% endif %}">
+                {% if month_data.month_pnl >= 0 %}+{% endif %}${{ "%.2f"|format(month_data.month_pnl) }}
+            </span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Total Trades</span>
+            <span class="value">{{ month_data.month_trades }}</span>
+        </div>
+    </div>
+
+    <!-- Weekday headers -->
+    <div class="calendar-grid">
+        <div class="weekday">Mon</div>
+        <div class="weekday">Tue</div>
+        <div class="weekday">Wed</div>
+        <div class="weekday">Thu</div>
+        <div class="weekday">Fri</div>
+        <div class="weekday">Sat</div>
+        <div class="weekday">Sun</div>
+
+        <!-- Calendar days -->
+        {% for day in calendar_days %}
+        <div class="{{ day.css_class }}" {% if day.number and day.stats %}onclick="window.location='/day/{{ day.date_str }}'"{% endif %}>
+            {% if day.number %}
+            <span class="day-number">{{ day.number }}</span>
+            {% if day.stats %}
+            <span class="trade-count">{{ day.stats.trade_count }} trade{% if day.stats.trade_count != 1 %}s{% endif %}</span>
+            <span class="pnl {% if day.stats.total_pnl > 0 %}positive{% else %}negative{% endif %}">
+                {% if day.stats.total_pnl >= 0 %}+{% endif %}${{ "%.2f"|format(day.stats.total_pnl) }}
+            </span>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <div class="legend-item">
+            <span class="legend-color profitable"></span>
+            <span>Profitable Day</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color losing"></span>
+            <span>Losing Day</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color today-indicator"></span>
+            <span>Today</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/calendar.js"></script>
+{% endblock %}

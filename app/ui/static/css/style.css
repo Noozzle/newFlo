@@ -1,0 +1,416 @@
+/* FloTrader Calendar UI Styles */
+
+:root {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-card: #334155;
+    --bg-hover: #475569;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --positive: #22c55e;
+    --positive-bg: rgba(34, 197, 94, 0.15);
+    --negative: #ef4444;
+    --negative-bg: rgba(239, 68, 68, 0.15);
+    --accent: #3b82f6;
+    --border: #475569;
+    --today-border: #fbbf24;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.badge {
+    margin-left: auto;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge.testnet {
+    background-color: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.badge.mainnet {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: var(--positive);
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* Calendar Container */
+.calendar-container {
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+/* Calendar Header */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.calendar-header h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.nav-btn {
+    padding: 8px 16px;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.nav-btn:hover {
+    background-color: var(--bg-hover);
+}
+
+/* Calendar Summary */
+.calendar-summary {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background-color: var(--bg-card);
+    border-radius: 8px;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.summary-item .label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.summary-item .value {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.weekday {
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.day {
+    background-color: var(--bg-card);
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.day:hover {
+    background-color: var(--bg-hover);
+    transform: translateY(-2px);
+}
+
+.day.empty {
+    background-color: transparent;
+    cursor: default;
+}
+
+.day.empty:hover {
+    transform: none;
+}
+
+.day.profitable {
+    background-color: var(--positive-bg);
+    border-color: var(--positive);
+}
+
+.day.losing {
+    background-color: var(--negative-bg);
+    border-color: var(--negative);
+}
+
+.day.today {
+    box-shadow: 0 0 0 2px var(--today-border);
+}
+
+.day-number {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.trade-count {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: auto;
+}
+
+.pnl {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: 4px;
+}
+
+.positive {
+    color: var(--positive);
+}
+
+.negative {
+    color: var(--negative);
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    gap: 24px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.legend-color.profitable {
+    background-color: var(--positive-bg);
+    border: 2px solid var(--positive);
+}
+
+.legend-color.losing {
+    background-color: var(--negative-bg);
+    border: 2px solid var(--negative);
+}
+
+.legend-color.today-indicator {
+    background-color: var(--bg-card);
+    box-shadow: 0 0 0 2px var(--today-border);
+}
+
+/* Day Detail Page */
+.day-container {
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.day-header {
+    margin-bottom: 24px;
+}
+
+.back-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+    background-color: var(--bg-hover);
+}
+
+.day-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Day Summary Cards */
+.day-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.summary-card {
+    background-color: var(--bg-card);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.card-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.card-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Trades Table */
+.trades-table-container {
+    overflow-x: auto;
+}
+
+.trades-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.trades-table th,
+.trades-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.trades-table th {
+    background-color: var(--bg-card);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.trades-table tr:hover {
+    background-color: var(--bg-card);
+}
+
+.trades-table tr.win {
+    background-color: var(--positive-bg);
+}
+
+.trades-table tr.loss {
+    background-color: var(--negative-bg);
+}
+
+.buy {
+    color: var(--positive);
+    font-weight: 600;
+}
+
+.sell {
+    color: var(--negative);
+    font-weight: 600;
+}
+
+/* No trades message */
+.no-trades {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-secondary);
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+
+    .calendar-grid {
+        gap: 2px;
+    }
+
+    .day {
+        padding: 8px;
+        min-height: 80px;
+    }
+
+    .day-number {
+        font-size: 0.9rem;
+    }
+
+    .trade-count,
+    .pnl {
+        font-size: 0.75rem;
+    }
+
+    .calendar-summary {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .legend {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .day-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
