@@ -78,6 +78,14 @@
         background-color: #ef4444;
     }
 
+    .legend-marker.tp {
+        background-color: #3b82f6;
+    }
+
+    .legend-marker.sl {
+        background-color: #f97316;
+    }
+
     .legend-line {
         width: 20px;
         height: 2px;
@@ -301,6 +309,14 @@
                 <span class="legend-marker exit"></span>
                 <span>Exit</span>
             </div>
+            <div class="legend-entry">
+                <span class="legend-marker tp"></span>
+                <span>Take Profit</span>
+            </div>
+            <div class="legend-entry">
+                <span class="legend-marker sl"></span>
+                <span>Stop Loss</span>
+            </div>
         </div>
     </div>
     {% endif %}
@@ -506,6 +522,16 @@ async function loadChart(tradeData, interval) {
     const sideDisplay = tradeData.side === 'Sell' ? 'LONG' : 'SHORT';
     titleEl.innerHTML = `${tradeData.symbol} | ${sideDisplay} | <span class="${pnlClass}">${pnlSign}$${tradeData.pnl.toFixed(4)}</span>`;
 
+    // Will update title with TP/SL after data loads
+    window.updateChartTitle = function(tp, sl) {
+        let tpslInfo = '';
+        if (tp) tpslInfo += ` | <span style="color: #3b82f6">TP: $${tp.toFixed(4)}</span>`;
+        if (sl) tpslInfo += ` | <span style="color: #f97316">SL: $${sl.toFixed(4)}</span>`;
+        if (tpslInfo) {
+            titleEl.innerHTML = `${tradeData.symbol} | ${sideDisplay} | <span class="${pnlClass}">${pnlSign}$${tradeData.pnl.toFixed(4)}</span>${tpslInfo}`;
+        }
+    };
+
     // Show loading
     chartDiv.innerHTML = '<div class="chart-loading">Loading chart data...</div>';
 
@@ -578,6 +604,35 @@ async function loadChart(tradeData, interval) {
             axisLabelVisible: true,
             title: 'Exit',
         });
+
+        // Add Take Profit line if available (blue dashed)
+        if (data.take_profit) {
+            candleSeries.createPriceLine({
+                price: data.take_profit,
+                color: '#3b82f6',
+                lineWidth: 1,
+                lineStyle: LightweightCharts.LineStyle.Dotted,
+                axisLabelVisible: true,
+                title: 'TP',
+            });
+        }
+
+        // Add Stop Loss line if available (orange dashed)
+        if (data.stop_loss) {
+            candleSeries.createPriceLine({
+                price: data.stop_loss,
+                color: '#f97316',
+                lineWidth: 1,
+                lineStyle: LightweightCharts.LineStyle.Dotted,
+                axisLabelVisible: true,
+                title: 'SL',
+            });
+        }
+
+        // Update title with TP/SL info
+        if (window.updateChartTitle) {
+            window.updateChartTitle(data.take_profit, data.stop_loss);
+        }
 
         // Add markers for entry and exit
         const markers = [];

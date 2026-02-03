@@ -279,6 +279,66 @@ class BybitPnLClient:
 
         return unique_klines
 
+    def get_trade_tpsl(
+        self,
+        symbol: str,
+        entry_time: datetime,
+        exit_time: datetime,
+    ) -> dict:
+        """
+        Try to find TP/SL for a closed trade by looking at order history.
+
+        Returns dict with 'take_profit' and 'stop_loss' prices if found.
+        """
+        result = {
+            "take_profit": None,
+            "stop_loss": None,
+        }
+
+        # Search window: from entry to exit + some buffer
+        start_ms = int(entry_time.timestamp() * 1000)
+        end_ms = int(exit_time.timestamp() * 1000) + 60000  # +1 min buffer
+
+        try:
+            # Get order history for this symbol
+            response = self._client.get_order_history(
+                category=self._config.category,
+                symbol=symbol,
+                startTime=start_ms,
+                endTime=end_ms,
+                limit=50,
+            )
+
+            if response.get("retCode") != 0:
+                logger.warning(f"Failed to get order history: {response.get('retMsg')}")
+                return result
+
+            orders = response.get("result", {}).get("list", [])
+
+            for order in orders:
+                stop_order_type = order.get("stopOrderType", "")
+                order_status = order.get("orderStatus", "")
+                trigger_price = order.get("triggerPrice", "")
+
+                # Look for TP/SL orders (filled, cancelled, or triggered)
+                if stop_order_type == "TakeProfit" and trigger_price:
+                    result["take_profit"] = float(trigger_price)
+                    logger.debug(f"Found TP: {trigger_price} for {symbol}")
+                elif stop_order_type == "StopLoss" and trigger_price:
+                    result["stop_loss"] = float(trigger_price)
+                    logger.debug(f"Found SL: {trigger_price} for {symbol}")
+
+                # Also check position TP/SL from regular orders
+                if order.get("takeProfit"):
+                    result["take_profit"] = float(order["takeProfit"])
+                if order.get("stopLoss"):
+                    result["stop_loss"] = float(order["stopLoss"])
+
+        except Exception as e:
+            logger.error(f"Error fetching TP/SL for {symbol}: {e}")
+
+        return result
+
     def get_wallet_balance(self) -> dict:
         """Get wallet balance."""
         try:

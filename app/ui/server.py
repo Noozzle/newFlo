@@ -379,6 +379,7 @@ async def get_trade_chart_data(
     start_time = datetime.fromtimestamp(entry_time - padding_before, tz=timezone.utc)
     end_time = datetime.fromtimestamp(exit_time + padding_after, tz=timezone.utc)
 
+    # Fetch klines
     klines = pnl_client.get_klines(
         symbol=symbol,
         interval=interval,
@@ -387,10 +388,17 @@ async def get_trade_chart_data(
         limit=1000,
     )
 
+    # Fetch TP/SL for this trade
+    entry_dt = datetime.fromtimestamp(entry_time, tz=timezone.utc)
+    exit_dt = datetime.fromtimestamp(exit_time, tz=timezone.utc)
+    tpsl = pnl_client.get_trade_tpsl(symbol, entry_dt, exit_dt)
+
     return {
         "symbol": symbol,
         "interval": interval,
         "klines": klines,
+        "take_profit": tpsl["take_profit"],
+        "stop_loss": tpsl["stop_loss"],
     }
 
 
