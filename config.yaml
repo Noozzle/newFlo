@@ -1,89 +1,58 @@
-# FloTrader Configuration
-# =======================
-
-# Trading mode: "live" or "backtest"
 mode: backtest
-
-# Symbols configuration
 symbols:
-  # Symbols to actively trade
   trade:
-    - SOLUSDT
-    - SUIUSDT
-    - DOGEUSDT
-    - XRPUSDT
-  # Symbols to record data only (no trading)
+  - SOLUSDT
+  - SUIUSDT
+  - DOGEUSDT
+  - XRPUSDT
   record:
-    - ETHUSDT
-    - SOLUSDT
-
-# Data storage settings
+  - ETHUSDT
+  - SOLUSDT
 data:
   base_dir: live_data
-  format: csv  # csv or parquet
+  format: csv
   rotation_hours: 1
   write_buffer_size: 100
-
-# Strategy configuration
 strategy:
   name: orderflow_1m
   params:
-    # Orderflow analysis
-    imbalance_threshold: 0.2  # Buy/sell imbalance threshold (0-1) - lowered for testing
-    delta_threshold: 0.1      # Orderbook delta threshold - lowered for testing
-    lookback_trades: 100      # Number of trades to analyze
-
-    # Risk/Reward
-    rr_ratio: 3.0             # Target R:R ratio (TP = 3x SL)
-    min_wr: 0.35              # Minimum target win rate
-
-    # Stop Loss calculation
-    atr_period: 14            # ATR period for SL
-    atr_multiplier: 2.5       # ATR multiplier for SL distance (optimized)
-
-    # Filters
-    trend_period: 15          # 15m candles for trend filter
-    cooldown_seconds: 60      # Cooldown between trades
-
-# Risk management
+    trend_period: 15
+    imbalance_threshold: '0.2'
+    delta_threshold: '0.1'
+    rr_ratio: '3.0'
+    min_wr: '0.35'
+    atr_period: 14
+    atr_multiplier: '2.5'
+    lookback_trades: 100
+    cooldown_seconds: 60
 risk:
-  max_position_pct: 2.0       # Risk 1% of equity per trade
-  max_daily_loss_pct: 3.0     # Stop trading after X% daily loss
-  max_concurrent_trades: 3    # Max open positions
-  max_drawdown_pct: 50.0      # Max drawdown before stopping
-  use_trailing_stop: false    # Enable trailing stop
-  trailing_stop_pct: 1.0      # Trailing stop distance %
-
-# Trading costs (for backtest)
+  max_position_pct: '2.0'
+  max_daily_loss_pct: '6.0'
+  max_concurrent_trades: 3
+  max_drawdown_pct: '50.0'
+  use_trailing_stop: false
+  trailing_stop_pct: '1.0'
 costs:
-  fees_bps: 10                # Trading fees in basis points (Taker: 0.10%)
-  slippage_bps: 2             # Estimated slippage in bps
-
-# Telegram notifications
+  fees_bps: '10'
+  slippage_bps: '2'
 telegram:
   enabled: true
-  token: "8084345225:AAE5f_4G0mtbGL3mX8W2QnSNORyen9ifJFo"    # Bot token from @BotFather
-  chat_id: "435736552"
+  token: 8084345225:AAE5f_4G0mtbGL3mX8W2QnSNORyen9ifJFo
+  chat_id: '435736552'
   notify_on_entry: true
   notify_on_exit: true
   notify_on_sl_tp: true
   notify_on_error: true
   notify_daily_summary: true
-
-# Bybit exchange settings
 bybit:
-  testnet: false               # Use testnet for safe testing first!
-  category: linear            # Product type (linear = USDT perps)
-  leverage: 10                # Default leverage
-  recv_window: 5000           # API recv window in ms
-  # Get API keys from testnet.bybit.com or bybit.com
-  # Set via ENV: BYBIT_API_KEY and BYBIT_API_SECRET
-  api_key: "6TetnJMPCP60aLwf9F"
-  api_secret: "KdF0KakMUPn46bABwdADvv24eKKOUMITOBWr"
-
-# Backtest-specific settings
+  testnet: false
+  category: linear
+  leverage: 10
+  recv_window: 5000
+  api_key: 6TetnJMPCP60aLwf9F
+  api_secret: KdF0KakMUPn46bABwdADvv24eKKOUMITOBWr
 backtest:
-  initial_capital: 50   # Starting capital in USDT
-  start_date: "2026-01-19"    # Optional: YYYY-MM-DD
-  end_date: "2026-01-29"      # Optional: YYYY-MM-DD
-  symbols: null               # Override symbols (or use symbols.trade)
+  start_date: '2026-01-19'
+  end_date: '2026-01-29'
+  initial_capital: '50'
+  symbols: null

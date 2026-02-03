@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
 from loguru import logger
 from pybit.unified_trading import HTTP
 
-from app.ui.models import ClosedPnLRecord
+from app.ui.models import ClosedPnLRecord, OpenPosition
 
 if TYPE_CHECKING:
     from app.config import BybitConfig
@@ -119,11 +119,58 @@ class BybitPnLClient:
         return records
 
     def get_day_trades(self, target_date: date) -> list[ClosedPnLRecord]:
-        """Get all trades for a specific day."""
+        """Get all trades for a specific day (by entry time)."""
         if isinstance(target_date, date):
-            start = datetime(target_date.year, target_date.month, target_date.day)
+            start = datetime(target_date.year, target_date.month, target_date.day, tzinfo=timezone.utc)
         else:
             start = target_date
 
         end = start + timedelta(days=1)
         return self.get_closed_pnl(start, end)
+
+    def get_open_positions(self) -> list[OpenPosition]:
+        """Get all currently open positions."""
+        positions: list[OpenPosition] = []
+
+        try:
+            result = self._client.get_positions(
+                category=self._config.category,
+                settleCoin="USDT",
+            )
+        except Exception as e:
+            logger.error(f"Error fetching open positions: {e}")
+            return positions
+
+        if result.get("retCode") != 0:
+            logger.error(f"Bybit API error: {result.get('retMsg')}")
+            return positions
+
+        data = result.get("result", {})
+        items = data.get("list", [])
+
+        for item in items:
+            try:
+                size = Decimal(item.get("size", "0"))
+                if size > 0:  # Only include positions with actual size
+                    positions.append(OpenPosition.from_api(item))
+            except Exception as e:
+                logger.warning(f"Failed to parse position: {e}, data={item}")
+                continue
+
+        logger.info(f"Fetched {len(positions)} open positions")
+        return positions
+
+    def get_ticker(self, symbol: str) -> dict | None:
+        """Get current ticker for a symbol."""
+        try:
+            result = self._client.get_tickers(
+                category=self._config.category,
+                symbol=symbol,
+            )
+            if result.get("retCode") == 0:
+                items = result.get("result", {}).get("list", [])
+                if items:
+                    return items[0]
+        except Exception as e:
+            logger.error(f"Error fetching ticker for {symbol}: {e}")
+        return None

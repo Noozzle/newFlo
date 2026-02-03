@@ -247,25 +247,30 @@ class RiskManager:
         """Reset daily tracking (call at start of new day)."""
         self._daily_loss = Decimal("0")
 
-    def check_new_day(self, event_time: datetime | None = None) -> None:
+    def check_new_day(self, event_time: datetime | None = None, use_realtime: bool = False) -> None:
         """
         Check if we've moved to a new trading day and reset daily loss.
 
-        Uses current UTC time for consistency (crypto markets use UTC).
-
         Args:
-            event_time: Optional timestamp (ignored, uses current UTC time)
+            event_time: Timestamp of current event (used in backtest mode)
+            use_realtime: If True, use current UTC time (for live mode)
         """
         from datetime import timezone
 
-        # Always use current UTC time for day boundary check
-        now_utc = datetime.now(timezone.utc)
-        current_date = now_utc.date()
+        # Use realtime for live mode, event_time for backtest
+        if use_realtime or event_time is None:
+            now_utc = datetime.now(timezone.utc)
+            current_date = now_utc.date()
+        else:
+            # For backtest - use event time
+            if event_time.tzinfo is None:
+                current_date = event_time.date()
+            else:
+                current_date = event_time.astimezone(timezone.utc).date()
 
         if self._current_day is None:
             logger.info(
-                f"Initializing trading day: {current_date} (UTC {now_utc.strftime('%H:%M:%S')}), "
-                f"daily_loss={self._daily_loss}"
+                f"Initializing trading day: {current_date}, daily_loss={self._daily_loss}"
             )
             self._current_day = current_date
         elif current_date > self._current_day:

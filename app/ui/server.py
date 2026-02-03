@@ -9,10 +9,32 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+# Try to get local timezone
+try:
+    from zoneinfo import ZoneInfo
+    LOCAL_TZ = ZoneInfo("localtime")
+except Exception:
+    LOCAL_TZ = None
 
-def utc_today() -> date:
-    """Get current date in UTC."""
-    return datetime.now(timezone.utc).date()
+
+def get_today(use_utc: bool = True) -> date:
+    """Get current date in UTC or local time."""
+    if use_utc:
+        return datetime.now(timezone.utc).date()
+    else:
+        return date.today()
+
+
+def convert_to_tz(dt: datetime, use_utc: bool = True) -> datetime:
+    """Convert datetime to UTC or local time."""
+    if use_utc:
+        if dt.tzinfo is None:
+            return dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    else:
+        if dt.tzinfo is None:
+            return dt
+        return dt.astimezone() if LOCAL_TZ is None else dt.astimezone(LOCAL_TZ)
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -50,33 +72,37 @@ async def startup() -> None:
     pnl_client = BybitPnLClient(_config.bybit)
 
 
-def get_calendar_data(year: int, month: int) -> tuple[MonthData, list[dict[str, Any]]]:
+def get_calendar_data(year: int, month: int, use_utc: bool = True) -> tuple[MonthData, list[dict[str, Any]]]:
     """Fetch and aggregate PnL data for a month."""
     assert pnl_client is not None
 
-    # Calculate date range
-    start_date = datetime(year, month, 1)
+    # Calculate date range (always fetch in UTC from API)
+    start_date = datetime(year, month, 1, tzinfo=timezone.utc)
     if month == 12:
-        end_date = datetime(year + 1, 1, 1)
+        end_date = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
     else:
-        end_date = datetime(year, month + 1, 1)
+        end_date = datetime(year, month + 1, 1, tzinfo=timezone.utc)
 
     # Fetch records from Bybit
     records = pnl_client.get_closed_pnl(start_date, end_date)
 
-    # Aggregate by day
+    # Aggregate by ENTRY day (convert to selected timezone)
     day_data: dict[int, dict[str, Any]] = defaultdict(
         lambda: {"pnl": Decimal(0), "count": 0, "wins": 0, "losses": 0}
     )
 
     for record in records:
-        day = record.closed_time.day
-        day_data[day]["pnl"] += record.closed_pnl
-        day_data[day]["count"] += 1
-        if record.closed_pnl > 0:
-            day_data[day]["wins"] += 1
-        else:
-            day_data[day]["losses"] += 1
+        # Convert ENTRY time to selected timezone for day grouping
+        local_time = convert_to_tz(record.entry_time, use_utc)
+        day = local_time.day
+        # Only count if in the requested month (timezone conversion may shift days)
+        if local_time.year == year and local_time.month == month:
+            day_data[day]["pnl"] += record.closed_pnl
+            day_data[day]["count"] += 1
+            if record.closed_pnl > 0:
+                day_data[day]["wins"] += 1
+            else:
+                day_data[day]["losses"] += 1
 
     # Build day stats
     days = {
@@ -121,7 +147,7 @@ def get_calendar_data(year: int, month: int) -> tuple[MonthData, list[dict[str, 
                     elif stats.total_pnl < 0:
                         css_classes.append("losing")
 
-                today = utc_today()
+                today = get_today(use_utc)
                 if year == today.year and month == today.month and day_num == today.day:
                     css_classes.append("today")
 
@@ -140,9 +166,11 @@ async def calendar_view(
     request: Request,
     year: int | None = None,
     month: int | None = None,
+    tz: str = "utc",  # "utc" or "local"
 ) -> HTMLResponse:
     """Render calendar view for specified month."""
-    today = utc_today()
+    use_utc = tz.lower() != "local"
+    today = get_today(use_utc)
     year = year or today.year
     month = month or today.month
 
@@ -162,7 +190,11 @@ async def calendar_view(
         next_year, next_month = year, month + 1
 
     # Get data
-    month_data, calendar_days = get_calendar_data(year, month)
+    month_data, calendar_days = get_calendar_data(year, month, use_utc)
+
+    # Get open positions
+    open_positions = pnl_client.get_open_positions() if pnl_client else []
+    total_unrealized = sum(p.unrealized_pnl for p in open_positions)
 
     return templates.TemplateResponse(
         "calendar.html",
@@ -176,6 +208,10 @@ async def calendar_view(
             "next_year": next_year,
             "next_month": next_month,
             "testnet": _config.bybit.testnet if _config else True,
+            "use_utc": use_utc,
+            "tz": tz.lower(),
+            "open_positions": open_positions,
+            "total_unrealized": total_unrealized,
         },
     )
 
@@ -186,20 +222,42 @@ async def day_detail(
     year: int,
     month: int,
     day: int,
+    tz: str = "utc",
 ) -> HTMLResponse:
     """Render detailed view for a specific day."""
     assert pnl_client is not None
 
+    use_utc = tz.lower() != "local"
     target_date = date(year, month, day)
-    trades = pnl_client.get_day_trades(target_date)
 
-    # Sort by time
-    trades.sort(key=lambda t: t.closed_time)
+    # Fetch trades
+    all_trades = pnl_client.get_day_trades(target_date)
 
-    # Calculate stats
+    # Filter trades by ENTRY time in selected timezone
+    trades = []
+    for trade in all_trades:
+        local_entry_time = convert_to_tz(trade.entry_time, use_utc)
+        if local_entry_time.date() == target_date:
+            trades.append(trade)
+
+    # Sort by entry time
+    trades.sort(key=lambda t: t.entry_time)
+
+    # Get open positions that were opened on this day
+    all_open = pnl_client.get_open_positions()
+    open_positions = []
+    for pos in all_open:
+        local_created = convert_to_tz(pos.created_time, use_utc)
+        if local_created.date() == target_date:
+            open_positions.append(pos)
+
+    # Calculate stats (closed trades only)
     total_pnl = sum(t.closed_pnl for t in trades)
     winning = [t for t in trades if t.closed_pnl > 0]
     losing = [t for t in trades if t.closed_pnl <= 0]
+
+    # Unrealized PnL from open positions
+    unrealized_pnl = sum(p.unrealized_pnl for p in open_positions)
 
     return templates.TemplateResponse(
         "day.html",
@@ -207,14 +265,41 @@ async def day_detail(
             "request": request,
             "date": target_date,
             "trades": trades,
+            "open_positions": open_positions,
             "total_pnl": total_pnl,
+            "unrealized_pnl": unrealized_pnl,
             "trade_count": len(trades),
             "winning_count": len(winning),
             "losing_count": len(losing),
             "win_rate": len(winning) / len(trades) * 100 if trades else 0,
             "testnet": _config.bybit.testnet if _config else True,
+            "use_utc": use_utc,
+            "tz": tz.lower(),
         },
     )
+
+
+@app.get("/api/positions")
+async def get_positions():
+    """API endpoint to get current open positions with live prices."""
+    assert pnl_client is not None
+
+    positions = pnl_client.get_open_positions()
+    return {
+        "positions": [
+            {
+                "symbol": p.symbol,
+                "side": p.side,
+                "size": str(p.size),
+                "entry_price": str(p.entry_price),
+                "mark_price": str(p.mark_price),
+                "unrealized_pnl": str(p.unrealized_pnl),
+                "leverage": p.leverage,
+                "created_time": p.created_time.isoformat(),
+            }
+            for p in positions
+        ]
+    }
 
 
 @app.get("/api/debug/{year}/{month}")

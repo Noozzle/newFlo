@@ -10,6 +10,20 @@
     <nav class="navbar">
         <a href="/" class="logo">FloTrader</a>
         <span class="subtitle">Trading Calendar</span>
+
+        <!-- Timezone switcher -->
+        <div class="tz-switcher">
+            <button onclick="switchTz('utc')" class="tz-btn {% if tz == 'utc' or not tz %}active{% endif %}">UTC</button>
+            <button onclick="switchTz('local')" class="tz-btn {% if tz == 'local' %}active{% endif %}">Local</button>
+        </div>
+        <script>
+            function switchTz(newTz) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('tz', newTz);
+                window.location.href = url.toString();
+            }
+        </script>
+
         {% if testnet %}
         <span class="badge testnet">TESTNET</span>
         {% else %}

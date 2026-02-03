@@ -3,18 +3,48 @@
 {% block title %}{{ month_data.month_name }} {{ month_data.year }} - FloTrader{% endblock %}
 
 {% block content %}
+<!-- Open Positions Banner -->
+{% if open_positions %}
+<div class="open-positions-banner">
+    <div class="banner-header">
+        <h3>Open Positions <span class="badge live">LIVE</span></h3>
+        <span class="unrealized-total {% if total_unrealized >= 0 %}positive{% else %}negative{% endif %}">
+            Unrealized: {% if total_unrealized >= 0 %}+{% endif %}${{ "%.4f"|format(total_unrealized) }}
+        </span>
+    </div>
+    <div class="positions-grid">
+        {% for pos in open_positions %}
+        <div class="position-card" data-symbol="{{ pos.symbol }}">
+            <div class="position-symbol">{{ pos.symbol }}</div>
+            <div class="position-side {% if pos.side == 'Buy' %}buy{% else %}sell{% endif %}">{{ pos.side }}</div>
+            <div class="position-details">
+                <span>Size: {{ pos.size }}</span>
+                <span>Entry: ${{ "%.4f"|format(pos.entry_price) }}</span>
+            </div>
+            <div class="position-pnl {% if pos.unrealized_pnl >= 0 %}positive{% else %}negative{% endif %}">
+                {% if pos.unrealized_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(pos.unrealized_pnl) }}
+            </div>
+            <div class="position-price">
+                Mark: <span class="mark-price">${{ "%.4f"|format(pos.mark_price) }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <div class="calendar-container">
     <!-- Header with navigation -->
     <div class="calendar-header">
-        <a href="/?year={{ prev_year }}&month={{ prev_month }}" class="nav-btn">&larr; Prev</a>
-        <h2>{{ month_data.month_name }} {{ month_data.year }}</h2>
-        <a href="/?year={{ next_year }}&month={{ next_month }}" class="nav-btn">Next &rarr;</a>
+        <a href="/?year={{ prev_year }}&month={{ prev_month }}&tz={{ tz }}" class="nav-btn">&larr; Prev</a>
+        <h2>{{ month_data.month_name }} {{ month_data.year }} <span class="tz-label">({{ 'UTC' if use_utc else 'Local' }})</span></h2>
+        <a href="/?year={{ next_year }}&month={{ next_month }}&tz={{ tz }}" class="nav-btn">Next &rarr;</a>
     </div>
 
     <!-- Month summary -->
     <div class="calendar-summary">
         <div class="summary-item">
-            <span class="label">Month Total</span>
+            <span class="label">Realized P&L</span>
             <span class="value {% if month_data.month_pnl > 0 %}positive{% elif month_data.month_pnl < 0 %}negative{% endif %}">
                 {% if month_data.month_pnl >= 0 %}+{% endif %}${{ "%.2f"|format(month_data.month_pnl) }}
             </span>
@@ -23,6 +53,12 @@
             <span class="label">Total Trades</span>
             <span class="value">{{ month_data.month_trades }}</span>
         </div>
+        {% if open_positions %}
+        <div class="summary-item">
+            <span class="label">Open Positions</span>
+            <span class="value">{{ open_positions|length }}</span>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Weekday headers -->
@@ -37,7 +73,7 @@
 
         <!-- Calendar days -->
         {% for day in calendar_days %}
-        <div class="{{ day.css_class }}" {% if day.number and day.stats %}onclick="window.location='/day/{{ day.date_str }}'"{% endif %}>
+        <div class="{{ day.css_class }}" {% if day.number and day.stats %}onclick="window.location='/day/{{ day.date_str }}?tz={{ tz }}'"{% endif %}>
             {% if day.number %}
             <span class="day-number">{{ day.number }}</span>
             {% if day.stats %}
@@ -71,4 +107,46 @@
 
 {% block scripts %}
 <script src="/static/js/calendar.js"></script>
+{% if open_positions %}
+<script>
+// Auto-refresh open positions every 5 seconds
+setInterval(async () => {
+    try {
+        const response = await fetch('/api/positions');
+        const data = await response.json();
+
+        let totalUnrealized = 0;
+
+        data.positions.forEach(pos => {
+            totalUnrealized += parseFloat(pos.unrealized_pnl);
+
+            const card = document.querySelector(`.position-card[data-symbol="${pos.symbol}"]`);
+            if (card) {
+                const pnlEl = card.querySelector('.position-pnl');
+                const priceEl = card.querySelector('.mark-price');
+
+                if (pnlEl) {
+                    const pnl = parseFloat(pos.unrealized_pnl);
+                    pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(4);
+                    pnlEl.className = 'position-pnl ' + (pnl >= 0 ? 'positive' : 'negative');
+                }
+
+                if (priceEl) {
+                    priceEl.textContent = '$' + parseFloat(pos.mark_price).toFixed(4);
+                }
+            }
+        });
+
+        // Update total unrealized
+        const totalEl = document.querySelector('.unrealized-total');
+        if (totalEl) {
+            totalEl.textContent = 'Unrealized: ' + (totalUnrealized >= 0 ? '+' : '') + '$' + totalUnrealized.toFixed(4);
+            totalEl.className = 'unrealized-total ' + (totalUnrealized >= 0 ? 'positive' : 'negative');
+        }
+    } catch (e) {
+        console.error('Failed to refresh positions:', e);
+    }
+}, 5000);
+</script>
+{% endif %}
 {% endblock %}

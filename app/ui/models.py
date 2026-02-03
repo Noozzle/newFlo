@@ -14,7 +14,8 @@ class ClosedPnLRecord(BaseModel):
     symbol: str
     side: str
     closed_pnl: Decimal
-    closed_time: datetime
+    entry_time: datetime  # When position was opened
+    exit_time: datetime   # When position was closed
     avg_entry_price: Decimal
     avg_exit_price: Decimal
     closed_size: Decimal
@@ -24,16 +25,45 @@ class ClosedPnLRecord(BaseModel):
     @classmethod
     def from_api(cls, data: dict) -> ClosedPnLRecord:
         """Create from Bybit API response."""
+        # createdTime = entry time, updatedTime = exit time
         return cls(
             symbol=data["symbol"],
             side=data["side"],
             closed_pnl=Decimal(data["closedPnl"]),
-            closed_time=datetime.fromtimestamp(int(data["updatedTime"]) / 1000, tz=timezone.utc),
+            entry_time=datetime.fromtimestamp(int(data["createdTime"]) / 1000, tz=timezone.utc),
+            exit_time=datetime.fromtimestamp(int(data["updatedTime"]) / 1000, tz=timezone.utc),
             avg_entry_price=Decimal(data["avgEntryPrice"]),
             avg_exit_price=Decimal(data["avgExitPrice"]),
             closed_size=Decimal(data["closedSize"]),
             leverage=int(data.get("leverage", 1)),
             order_type=data.get("orderType", ""),
+        )
+
+
+class OpenPosition(BaseModel):
+    """Currently open position."""
+
+    symbol: str
+    side: str
+    size: Decimal
+    entry_price: Decimal
+    mark_price: Decimal
+    unrealized_pnl: Decimal
+    leverage: int
+    created_time: datetime
+
+    @classmethod
+    def from_api(cls, data: dict) -> "OpenPosition":
+        """Create from Bybit API response."""
+        return cls(
+            symbol=data["symbol"],
+            side=data["side"],
+            size=Decimal(data["size"]),
+            entry_price=Decimal(data["avgPrice"]),
+            mark_price=Decimal(data.get("markPrice", "0")),
+            unrealized_pnl=Decimal(data.get("unrealisedPnl", "0")),
+            leverage=int(data.get("leverage", 1)),
+            created_time=datetime.fromtimestamp(int(data["createdTime"]) / 1000, tz=timezone.utc),
         )
 
 

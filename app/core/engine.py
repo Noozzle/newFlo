@@ -121,8 +121,10 @@ class Engine:
         self._current_time = event.timestamp
         self._current_prices[event.symbol] = event.close
 
-        # Check for new trading day (reset daily loss limit) - needed for live mode
-        self._risk_manager.check_new_day(event.timestamp)
+        # Check for new trading day (reset daily loss limit)
+        # In live mode, use realtime clock; in backtest, use event time
+        is_live = self._config.mode == Mode.LIVE
+        self._risk_manager.check_new_day(event.timestamp, use_realtime=is_live)
 
         # Forward to strategy
         await self._strategy.on_kline(event)
@@ -218,8 +220,8 @@ class Engine:
                 if isinstance(self._exchange, SimulatedExchangeAdapter):
                     self._exchange.update_time(event.timestamp)
 
-                # Check for new trading day (reset daily loss limit)
-                self._risk_manager.check_new_day(event.timestamp)
+                # Check for new trading day (reset daily loss limit) - backtest uses event time
+                self._risk_manager.check_new_day(event.timestamp, use_realtime=False)
 
                 # Dispatch event
                 await self._event_bus.publish_immediate(event)

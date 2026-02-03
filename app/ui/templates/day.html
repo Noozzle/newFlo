@@ -6,20 +6,26 @@
 <div class="day-container">
     <!-- Back button and header -->
     <div class="day-header">
-        <a href="/?year={{ date.year }}&month={{ date.month }}" class="back-btn">&larr; Back to Calendar</a>
-        <h2>{{ date.strftime('%A, %B %d, %Y') }}</h2>
+        <a href="/?year={{ date.year }}&month={{ date.month }}&tz={{ tz }}" class="back-btn">&larr; Back to Calendar</a>
+        <h2>{{ date.strftime('%A, %B %d, %Y') }} <span class="tz-label">({{ 'UTC' if use_utc else 'Local' }})</span></h2>
     </div>
 
     <!-- Day summary -->
     <div class="day-summary">
         <div class="summary-card">
-            <span class="card-label">Total P&L</span>
+            <span class="card-label">Realized P&L</span>
             <span class="card-value {% if total_pnl > 0 %}positive{% elif total_pnl < 0 %}negative{% endif %}">
-                {% if total_pnl >= 0 %}+{% endif %}${{ "%.2f"|format(total_pnl) }}
+                {% if total_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(total_pnl) }}
             </span>
         </div>
         <div class="summary-card">
-            <span class="card-label">Trades</span>
+            <span class="card-label">Unrealized P&L</span>
+            <span class="card-value {% if unrealized_pnl > 0 %}positive{% elif unrealized_pnl < 0 %}negative{% endif %}">
+                {% if unrealized_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(unrealized_pnl) }}
+            </span>
+        </div>
+        <div class="summary-card">
+            <span class="card-label">Closed Trades</span>
             <span class="card-value">{{ trade_count }}</span>
         </div>
         <div class="summary-card">
@@ -35,13 +41,56 @@
         </div>
     </div>
 
-    <!-- Trades table -->
+    <!-- Open Positions -->
+    {% if open_positions %}
+    <div class="section-header">
+        <h3>Open Positions <span class="badge live">LIVE</span></h3>
+    </div>
+    <div class="trades-table-container">
+        <table class="trades-table" id="open-positions-table">
+            <thead>
+                <tr>
+                    <th>Entry Time</th>
+                    <th>Symbol</th>
+                    <th>Side</th>
+                    <th>Size</th>
+                    <th>Entry</th>
+                    <th>Mark Price</th>
+                    <th>Unrealized P&L</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pos in open_positions %}
+                <tr class="open-position" data-symbol="{{ pos.symbol }}">
+                    <td>{{ pos.created_time.strftime('%H:%M:%S') }}</td>
+                    <td>{{ pos.symbol }}</td>
+                    <td class="{% if pos.side == 'Buy' %}buy{% else %}sell{% endif %}">
+                        {{ pos.side }}
+                    </td>
+                    <td>{{ pos.size }}</td>
+                    <td>${{ "%.4f"|format(pos.entry_price) }}</td>
+                    <td class="mark-price">${{ "%.4f"|format(pos.mark_price) }}</td>
+                    <td class="unrealized-pnl {% if pos.unrealized_pnl > 0 %}positive{% else %}negative{% endif %}">
+                        {% if pos.unrealized_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(pos.unrealized_pnl) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Closed Trades -->
     {% if trades %}
+    <div class="section-header">
+        <h3>Closed Trades</h3>
+    </div>
     <div class="trades-table-container">
         <table class="trades-table">
             <thead>
                 <tr>
-                    <th>Time</th>
+                    <th>Entry Time</th>
+                    <th>Exit Time</th>
                     <th>Symbol</th>
                     <th>Side</th>
                     <th>Size</th>
@@ -53,7 +102,8 @@
             <tbody>
                 {% for trade in trades %}
                 <tr class="{% if trade.closed_pnl > 0 %}win{% else %}loss{% endif %}">
-                    <td>{{ trade.closed_time.strftime('%H:%M:%S') }}</td>
+                    <td>{{ trade.entry_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ trade.exit_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>{{ trade.symbol }}</td>
                     <td class="{% if trade.side == 'Buy' %}buy{% else %}sell{% endif %}">
                         {{ trade.side }}
@@ -69,10 +119,44 @@
             </tbody>
         </table>
     </div>
-    {% else %}
+    {% elif not open_positions %}
     <div class="no-trades">
         <p>No trades on this day</p>
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh open positions every 5 seconds
+{% if open_positions %}
+setInterval(async () => {
+    try {
+        const response = await fetch('/api/positions');
+        const data = await response.json();
+
+        data.positions.forEach(pos => {
+            const row = document.querySelector(`tr[data-symbol="${pos.symbol}"]`);
+            if (row) {
+                const markPriceCell = row.querySelector('.mark-price');
+                const pnlCell = row.querySelector('.unrealized-pnl');
+
+                if (markPriceCell) {
+                    markPriceCell.textContent = '$' + parseFloat(pos.mark_price).toFixed(4);
+                }
+
+                if (pnlCell) {
+                    const pnl = parseFloat(pos.unrealized_pnl);
+                    pnlCell.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(4);
+                    pnlCell.className = 'unrealized-pnl ' + (pnl >= 0 ? 'positive' : 'negative');
+                }
+            }
+        });
+    } catch (e) {
+        console.error('Failed to refresh positions:', e);
+    }
+}, 5000);
+{% endif %}
+</script>
 {% endblock %}
