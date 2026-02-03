@@ -2,6 +2,138 @@
 
 {% block title %}{{ date.strftime('%B %d, %Y') }} - FloTrader{% endblock %}
 
+{% block head %}
+<!-- TradingView Lightweight Charts -->
+<script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+    /* Chart styles */
+    .chart-container {
+        background-color: var(--bg-card);
+        border-radius: 8px;
+        margin: 16px 0;
+        padding: 16px;
+        display: none;
+    }
+
+    .chart-container.active {
+        display: block;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .chart-title {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .chart-close-btn {
+        background: var(--bg-hover);
+        border: none;
+        color: var(--text-primary);
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .chart-close-btn:hover {
+        background: var(--accent);
+    }
+
+    #trade-chart {
+        width: 100%;
+        height: 400px;
+    }
+
+    .chart-legend {
+        display: flex;
+        gap: 16px;
+        margin-top: 12px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .legend-entry {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .legend-marker {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .legend-marker.entry {
+        background-color: #22c55e;
+    }
+
+    .legend-marker.exit {
+        background-color: #ef4444;
+    }
+
+    .legend-line {
+        width: 20px;
+        height: 2px;
+    }
+
+    /* Clickable trade rows */
+    .trades-table tbody tr.clickable {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .trades-table tbody tr.clickable:hover {
+        background-color: var(--bg-hover) !important;
+    }
+
+    .trades-table tbody tr.selected {
+        outline: 2px solid var(--accent);
+        outline-offset: -2px;
+    }
+
+    .chart-loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 400px;
+        color: var(--text-secondary);
+    }
+
+    .interval-selector {
+        display: flex;
+        gap: 4px;
+    }
+
+    .interval-btn {
+        padding: 4px 10px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    .interval-btn:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+    }
+
+    .interval-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="day-container">
     <!-- Back button and header -->
@@ -70,7 +202,7 @@
                 <tr class="open-position" data-symbol="{{ item.position.symbol }}">
                     <td>{{ item.position.symbol }}</td>
                     <td class="{% if item.position.side == 'Buy' %}buy{% else %}sell{% endif %}">
-                        {{ item.position.side }}
+                        {% if item.position.side == 'Buy' %}LONG{% else %}SHORT{% endif %}
                     </td>
                     <td>{{ item.position.size }}</td>
                     <td>${{ "%.4f"|format(item.position.entry_price) }}</td>
@@ -96,10 +228,10 @@
     <!-- Closed Trades -->
     {% if trades %}
     <div class="section-header">
-        <h3>Closed Trades ({{ trade_count }})</h3>
+        <h3>Closed Trades ({{ trade_count }}) <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">- click to view chart</span></h3>
     </div>
     <div class="trades-table-container">
-        <table class="trades-table">
+        <table class="trades-table" id="closed-trades-table">
             <thead>
                 <tr>
                     <th>Entry Time</th>
@@ -115,12 +247,19 @@
             </thead>
             <tbody>
                 {% for item in trades %}
-                <tr class="{% if item.trade.closed_pnl > 0 %}win{% else %}loss{% endif %}">
+                <tr class="{% if item.trade.closed_pnl > 0 %}win{% else %}loss{% endif %} clickable"
+                    data-symbol="{{ item.trade.symbol }}"
+                    data-entry-time="{{ item.trade.entry_time.timestamp()|int }}"
+                    data-exit-time="{{ item.trade.exit_time.timestamp()|int }}"
+                    data-entry-price="{{ item.trade.avg_entry_price }}"
+                    data-exit-price="{{ item.trade.avg_exit_price }}"
+                    data-side="{{ item.trade.side }}"
+                    data-pnl="{{ item.trade.closed_pnl }}">
                     <td>{{ item.trade.entry_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>{{ item.trade.exit_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>{{ item.trade.symbol }}</td>
-                    <td class="{% if item.trade.side == 'Buy' %}buy{% else %}sell{% endif %}">
-                        {{ item.trade.side }}
+                    <td class="{% if item.trade.side == 'Sell' %}buy{% else %}sell{% endif %}">
+                        {% if item.trade.side == 'Sell' %}LONG{% else %}SHORT{% endif %}
                     </td>
                     <td>{{ item.trade.closed_size }}</td>
                     <td>${{ "%.4f"|format(item.trade.avg_entry_price) }}</td>
@@ -135,6 +274,34 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <!-- Trade Chart Container -->
+    <div class="chart-container" id="chart-container">
+        <div class="chart-header">
+            <span class="chart-title" id="chart-title">Loading...</span>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div class="interval-selector">
+                    <button class="interval-btn active" data-interval="1">1m</button>
+                    <button class="interval-btn" data-interval="5">5m</button>
+                    <button class="interval-btn" data-interval="15">15m</button>
+                </div>
+                <button class="chart-close-btn" onclick="closeChart()">Close</button>
+            </div>
+        </div>
+        <div id="trade-chart">
+            <div class="chart-loading">Loading chart data...</div>
+        </div>
+        <div class="chart-legend">
+            <div class="legend-entry">
+                <span class="legend-marker entry"></span>
+                <span>Entry</span>
+            </div>
+            <div class="legend-entry">
+                <span class="legend-marker exit"></span>
+                <span>Exit</span>
+            </div>
+        </div>
     </div>
     {% endif %}
 </div>
@@ -216,7 +383,7 @@ function updatePositions(data) {
                 row.dataset.symbol = pos.symbol;
                 row.innerHTML = `
                     <td>${pos.symbol}</td>
-                    <td class="${pos.side === 'Buy' ? 'buy' : 'sell'}">${pos.side}</td>
+                    <td class="${pos.side === 'Buy' ? 'buy' : 'sell'}">${pos.side === 'Buy' ? 'LONG' : 'SHORT'}</td>
                     <td>${pos.size}</td>
                     <td>$${parseFloat(pos.entry_price).toFixed(4)}</td>
                     <td class="mark-price">$${parseFloat(pos.mark_price).toFixed(4)}</td>
@@ -267,5 +434,216 @@ function updatePositions(data) {
 
 // Connect on page load
 connectWebSocket();
+
+// ============ CHART FUNCTIONALITY ============
+let chart = null;
+let candleSeries = null;
+let currentTradeData = null;
+let entryMarker = null;
+let exitMarker = null;
+let entryLine = null;
+let exitLine = null;
+
+// Initialize chart click handlers
+document.querySelectorAll('#closed-trades-table tbody tr.clickable').forEach(row => {
+    row.addEventListener('click', () => {
+        // Remove selection from other rows
+        document.querySelectorAll('#closed-trades-table tbody tr.selected').forEach(r => {
+            r.classList.remove('selected');
+        });
+        // Select this row
+        row.classList.add('selected');
+
+        // Get trade data from data attributes
+        const tradeData = {
+            symbol: row.dataset.symbol,
+            entryTime: parseInt(row.dataset.entryTime),
+            exitTime: parseInt(row.dataset.exitTime),
+            entryPrice: parseFloat(row.dataset.entryPrice),
+            exitPrice: parseFloat(row.dataset.exitPrice),
+            side: row.dataset.side,
+            pnl: parseFloat(row.dataset.pnl)
+        };
+
+        loadChart(tradeData, '1');
+    });
+});
+
+// Interval selector handlers
+document.querySelectorAll('.interval-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (!currentTradeData) return;
+
+        // Update active state
+        document.querySelectorAll('.interval-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Reload chart with new interval
+        loadChart(currentTradeData, btn.dataset.interval);
+    });
+});
+
+function closeChart() {
+    document.getElementById('chart-container').classList.remove('active');
+    document.querySelectorAll('#closed-trades-table tbody tr.selected').forEach(r => {
+        r.classList.remove('selected');
+    });
+    currentTradeData = null;
+}
+
+async function loadChart(tradeData, interval) {
+    currentTradeData = tradeData;
+    const container = document.getElementById('chart-container');
+    const chartDiv = document.getElementById('trade-chart');
+    const titleEl = document.getElementById('chart-title');
+
+    // Show container
+    container.classList.add('active');
+
+    // Update title (side in API is closing side, so Sell=LONG, Buy=SHORT)
+    const pnlClass = tradeData.pnl >= 0 ? 'positive' : 'negative';
+    const pnlSign = tradeData.pnl >= 0 ? '+' : '';
+    const sideDisplay = tradeData.side === 'Sell' ? 'LONG' : 'SHORT';
+    titleEl.innerHTML = `${tradeData.symbol} | ${sideDisplay} | <span class="${pnlClass}">${pnlSign}$${tradeData.pnl.toFixed(4)}</span>`;
+
+    // Show loading
+    chartDiv.innerHTML = '<div class="chart-loading">Loading chart data...</div>';
+
+    try {
+        // Fetch kline data
+        const response = await fetch(`/api/trade-chart/${tradeData.symbol}?entry_time=${tradeData.entryTime}&exit_time=${tradeData.exitTime}&interval=${interval}`);
+        const data = await response.json();
+
+        if (!data.klines || data.klines.length === 0) {
+            chartDiv.innerHTML = '<div class="chart-loading">No chart data available</div>';
+            return;
+        }
+
+        // Clear and recreate chart
+        chartDiv.innerHTML = '';
+
+        // Create chart
+        chart = LightweightCharts.createChart(chartDiv, {
+            width: chartDiv.clientWidth,
+            height: 400,
+            layout: {
+                background: { color: '#1e293b' },
+                textColor: '#94a3b8',
+            },
+            grid: {
+                vertLines: { color: '#334155' },
+                horzLines: { color: '#334155' },
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+            },
+            rightPriceScale: {
+                borderColor: '#475569',
+            },
+            timeScale: {
+                borderColor: '#475569',
+                timeVisible: true,
+                secondsVisible: false,
+            },
+        });
+
+        // Add candlestick series
+        candleSeries = chart.addCandlestickSeries({
+            upColor: '#22c55e',
+            downColor: '#ef4444',
+            borderUpColor: '#22c55e',
+            borderDownColor: '#ef4444',
+            wickUpColor: '#22c55e',
+            wickDownColor: '#ef4444',
+        });
+
+        candleSeries.setData(data.klines);
+
+        // Add entry price line (green)
+        entryLine = candleSeries.createPriceLine({
+            price: tradeData.entryPrice,
+            color: '#22c55e',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: 'Entry',
+        });
+
+        // Add exit price line (red)
+        exitLine = candleSeries.createPriceLine({
+            price: tradeData.exitPrice,
+            color: '#ef4444',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: 'Exit',
+        });
+
+        // Add markers for entry and exit
+        const markers = [];
+
+        // Find closest candle to entry time
+        // Note: API side is closing side, so Sell=LONG position, Buy=SHORT position
+        const isLong = tradeData.side === 'Sell';
+        const entryCandle = findClosestCandle(data.klines, tradeData.entryTime);
+        if (entryCandle) {
+            markers.push({
+                time: entryCandle.time,
+                position: isLong ? 'belowBar' : 'aboveBar',
+                color: '#22c55e',
+                shape: isLong ? 'arrowUp' : 'arrowDown',
+                text: 'Entry @ $' + tradeData.entryPrice.toFixed(4),
+            });
+        }
+
+        // Find closest candle to exit time
+        const exitCandle = findClosestCandle(data.klines, tradeData.exitTime);
+        if (exitCandle) {
+            markers.push({
+                time: exitCandle.time,
+                position: isLong ? 'aboveBar' : 'belowBar',
+                color: '#ef4444',
+                shape: isLong ? 'arrowDown' : 'arrowUp',
+                text: 'Exit @ $' + tradeData.exitPrice.toFixed(4),
+            });
+        }
+
+        if (markers.length > 0) {
+            candleSeries.setMarkers(markers);
+        }
+
+        // Fit content
+        chart.timeScale().fitContent();
+
+        // Handle resize
+        const resizeObserver = new ResizeObserver(entries => {
+            if (chart) {
+                chart.applyOptions({ width: chartDiv.clientWidth });
+            }
+        });
+        resizeObserver.observe(chartDiv);
+
+    } catch (error) {
+        console.error('Error loading chart:', error);
+        chartDiv.innerHTML = `<div class="chart-loading">Error loading chart: ${error.message}</div>`;
+    }
+}
+
+function findClosestCandle(klines, timestamp) {
+    if (!klines || klines.length === 0) return null;
+
+    let closest = klines[0];
+    let minDiff = Math.abs(klines[0].time - timestamp);
+
+    for (const candle of klines) {
+        const diff = Math.abs(candle.time - timestamp);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closest = candle;
+        }
+    }
+
+    return closest;
+}
 </script>
 {% endblock %}

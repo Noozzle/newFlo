@@ -182,6 +182,103 @@ class BybitPnLClient:
             logger.error(f"Error fetching ticker for {symbol}: {e}")
         return None
 
+    def get_klines(
+        self,
+        symbol: str,
+        interval: str = "1",  # 1 minute
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+        limit: int = 1000,
+    ) -> list[dict]:
+        """Get kline/candlestick data for charting with pagination."""
+        all_klines = []
+
+        # Bybit max is 1000 per request
+        batch_limit = min(limit, 1000)
+        current_end = end_time
+
+        # Interval in milliseconds for pagination
+        interval_ms = {
+            "1": 60000, "3": 180000, "5": 300000, "15": 900000,
+            "30": 1800000, "60": 3600000, "120": 7200000,
+            "240": 14400000, "360": 21600000, "720": 43200000,
+            "D": 86400000, "W": 604800000,
+        }.get(interval, 60000)
+
+        remaining = limit
+
+        while remaining > 0:
+            params: dict = {
+                "category": self._config.category,
+                "symbol": symbol,
+                "interval": interval,
+                "limit": min(batch_limit, remaining),
+            }
+
+            if start_time:
+                params["start"] = int(start_time.timestamp() * 1000)
+            if current_end:
+                params["end"] = int(current_end.timestamp() * 1000)
+
+            try:
+                result = self._client.get_kline(**params)
+
+                if result.get("retCode") != 0:
+                    logger.error(f"Bybit API error fetching klines: {result.get('retMsg')}")
+                    break
+
+                data = result.get("result", {})
+                items = data.get("list", [])
+
+                if not items:
+                    break
+
+                # Bybit returns newest first
+                batch_klines = []
+                for item in items:
+                    # item format: [startTime, open, high, low, close, volume, turnover]
+                    batch_klines.append({
+                        "time": int(item[0]) // 1000,  # Convert to seconds
+                        "open": float(item[1]),
+                        "high": float(item[2]),
+                        "low": float(item[3]),
+                        "close": float(item[4]),
+                        "volume": float(item[5]),
+                    })
+
+                # Prepend to all_klines (since we're going backwards in time)
+                all_klines = batch_klines + all_klines
+                remaining -= len(items)
+
+                # If we got less than requested, we've reached the start
+                if len(items) < batch_limit:
+                    break
+
+                # Move end time to before the oldest candle we got
+                oldest_time_ms = int(items[-1][0])
+                current_end = datetime.fromtimestamp((oldest_time_ms - interval_ms) / 1000, tz=timezone.utc)
+
+                # Safety check: don't go before start_time
+                if start_time and current_end < start_time:
+                    break
+
+            except Exception as e:
+                logger.error(f"Error fetching klines: {e}")
+                break
+
+        # Sort by time (oldest first) and remove duplicates
+        all_klines.sort(key=lambda x: x["time"])
+
+        # Remove duplicates based on time
+        seen_times = set()
+        unique_klines = []
+        for k in all_klines:
+            if k["time"] not in seen_times:
+                seen_times.add(k["time"])
+                unique_klines.append(k)
+
+        return unique_klines
+
     def get_wallet_balance(self) -> dict:
         """Get wallet balance."""
         try:

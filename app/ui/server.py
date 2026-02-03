@@ -43,6 +43,7 @@ from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from loguru import logger
 
 from app.config import Config
 from app.ui.bybit_client import BybitPnLClient
@@ -358,6 +359,41 @@ async def debug_positions():
         return {"error": str(e)}
 
 
+@app.get("/api/trade-chart/{symbol}")
+async def get_trade_chart_data(
+    symbol: str,
+    entry_time: int,  # Unix timestamp in seconds
+    exit_time: int,   # Unix timestamp in seconds
+    interval: str = "1",
+):
+    """Get kline data for trade chart visualization."""
+    assert pnl_client is not None
+
+    # Interval in minutes
+    interval_minutes = {"1": 1, "5": 5, "15": 15, "60": 60}.get(interval, 1)
+
+    # Add padding: ~100 candles before entry, ~30 candles after exit
+    padding_before = 100 * interval_minutes * 60  # 100 candles of history
+    padding_after = 30 * interval_minutes * 60    # 30 candles after
+
+    start_time = datetime.fromtimestamp(entry_time - padding_before, tz=timezone.utc)
+    end_time = datetime.fromtimestamp(exit_time + padding_after, tz=timezone.utc)
+
+    klines = pnl_client.get_klines(
+        symbol=symbol,
+        interval=interval,
+        start_time=start_time,
+        end_time=end_time,
+        limit=1000,
+    )
+
+    return {
+        "symbol": symbol,
+        "interval": interval,
+        "klines": klines,
+    }
+
+
 @app.get("/api/balance")
 async def get_balance():
     """Get current wallet balance."""
@@ -465,7 +501,8 @@ async def debug_month_data(year: int, month: int):
                 "symbol": r.symbol,
                 "side": r.side,
                 "closed_pnl": str(r.closed_pnl),
-                "closed_time": r.closed_time.isoformat(),
+                "entry_time": r.entry_time.isoformat(),
+                "exit_time": r.exit_time.isoformat(),
                 "entry_price": str(r.avg_entry_price),
                 "exit_price": str(r.avg_exit_price),
                 "size": str(r.closed_size),
