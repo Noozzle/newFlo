@@ -24,8 +24,8 @@ strategy:
     atr_multiplier: '2.5'
     lookback_trades: 100
     cooldown_seconds: 60
-    fast_orderbook_mode: true  # Use float parsing for orderbook (faster, epsilon precision trade-off)
-    orderbook_bucket_ms: 1000  # Downsample orderbook to 50ms intervals (0 = disabled, keeps all events)
+    fast_orderbook_mode: false  # Use float parsing for orderbook (faster, epsilon precision trade-off)
+    orderbook_bucket_ms: 50  # Downsample orderbook to 50ms intervals (0 = disabled, keeps all events)
 risk:
   max_position_pct: '2.0'
   max_daily_loss_pct: '6.0'
