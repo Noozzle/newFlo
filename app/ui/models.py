@@ -51,19 +51,38 @@ class OpenPosition(BaseModel):
     unrealized_pnl: Decimal
     leverage: int
     created_time: datetime
+    liq_price: Decimal | None = None
+    position_value: Decimal | None = None
 
     @classmethod
     def from_api(cls, data: dict) -> "OpenPosition":
         """Create from Bybit API response."""
+        # Parse created time - can be timestamp or empty
+        created_time_raw = data.get("createdTime", "0")
+        if created_time_raw and created_time_raw != "0":
+            created_time = datetime.fromtimestamp(int(created_time_raw) / 1000, tz=timezone.utc)
+        else:
+            created_time = datetime.now(timezone.utc)
+
+        # Parse liquidation price
+        liq_price_raw = data.get("liqPrice", "")
+        liq_price = Decimal(liq_price_raw) if liq_price_raw else None
+
+        # Parse position value
+        pos_value_raw = data.get("positionValue", "0")
+        pos_value = Decimal(pos_value_raw) if pos_value_raw else None
+
         return cls(
             symbol=data["symbol"],
             side=data["side"],
             size=Decimal(data["size"]),
-            entry_price=Decimal(data["avgPrice"]),
-            mark_price=Decimal(data.get("markPrice", "0")),
-            unrealized_pnl=Decimal(data.get("unrealisedPnl", "0")),
-            leverage=int(data.get("leverage", 1)),
-            created_time=datetime.fromtimestamp(int(data["createdTime"]) / 1000, tz=timezone.utc),
+            entry_price=Decimal(data.get("avgPrice", "0") or "0"),
+            mark_price=Decimal(data.get("markPrice", "0") or "0"),
+            unrealized_pnl=Decimal(data.get("unrealisedPnl", "0") or "0"),
+            leverage=int(data.get("leverage", "1") or "1"),
+            created_time=created_time,
+            liq_price=liq_price,
+            position_value=pos_value,
         )
 
 

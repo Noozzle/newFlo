@@ -8,6 +8,9 @@
     <div class="day-header">
         <a href="/?year={{ date.year }}&month={{ date.month }}&tz={{ tz }}" class="back-btn">&larr; Back to Calendar</a>
         <h2>{{ date.strftime('%A, %B %d, %Y') }} <span class="tz-label">({{ 'UTC' if use_utc else 'Local' }})</span></h2>
+        <div class="balance-display">
+            Balance: <span id="current-balance">${{ "%.2f"|format(balance) }}</span>
+        </div>
     </div>
 
     <!-- Day summary -->
@@ -16,12 +19,14 @@
             <span class="card-label">Realized P&L</span>
             <span class="card-value {% if total_pnl > 0 %}positive{% elif total_pnl < 0 %}negative{% endif %}">
                 {% if total_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(total_pnl) }}
+                <span class="pct">({{ "%.2f"|format(total_pnl_pct) }}%)</span>
             </span>
         </div>
         <div class="summary-card">
             <span class="card-label">Unrealized P&L</span>
-            <span class="card-value {% if unrealized_pnl > 0 %}positive{% elif unrealized_pnl < 0 %}negative{% endif %}">
+            <span class="card-value {% if unrealized_pnl > 0 %}positive{% elif unrealized_pnl < 0 %}negative{% endif %}" id="unrealized-total">
                 {% if unrealized_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(unrealized_pnl) }}
+                <span class="pct">({{ "%.2f"|format(unrealized_pnl_pct) }}%)</span>
             </span>
         </div>
         <div class="summary-card">
@@ -41,49 +46,57 @@
         </div>
     </div>
 
-    <!-- Open Positions -->
-    {% if open_positions %}
+    <!-- Open Positions (Realtime via WebSocket) -->
     <div class="section-header">
-        <h3>Open Positions <span class="badge live">LIVE</span></h3>
+        <h3>Open Positions <span class="badge live" id="ws-status">CONNECTING...</span></h3>
     </div>
     <div class="trades-table-container">
-        <table class="trades-table" id="open-positions-table">
+        <table class="trades-table" id="positions-table">
             <thead>
                 <tr>
-                    <th>Entry Time</th>
                     <th>Symbol</th>
                     <th>Side</th>
                     <th>Size</th>
                     <th>Entry</th>
                     <th>Mark Price</th>
+                    <th>Liq. Price</th>
                     <th>Unrealized P&L</th>
+                    <th>% of Balance</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for pos in open_positions %}
-                <tr class="open-position" data-symbol="{{ pos.symbol }}">
-                    <td>{{ pos.created_time.strftime('%H:%M:%S') }}</td>
-                    <td>{{ pos.symbol }}</td>
-                    <td class="{% if pos.side == 'Buy' %}buy{% else %}sell{% endif %}">
-                        {{ pos.side }}
+            <tbody id="positions-body">
+                {% if open_positions %}
+                {% for item in open_positions %}
+                <tr class="open-position" data-symbol="{{ item.position.symbol }}">
+                    <td>{{ item.position.symbol }}</td>
+                    <td class="{% if item.position.side == 'Buy' %}buy{% else %}sell{% endif %}">
+                        {{ item.position.side }}
                     </td>
-                    <td>{{ pos.size }}</td>
-                    <td>${{ "%.4f"|format(pos.entry_price) }}</td>
-                    <td class="mark-price">${{ "%.4f"|format(pos.mark_price) }}</td>
-                    <td class="unrealized-pnl {% if pos.unrealized_pnl > 0 %}positive{% else %}negative{% endif %}">
-                        {% if pos.unrealized_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(pos.unrealized_pnl) }}
+                    <td>{{ item.position.size }}</td>
+                    <td>${{ "%.4f"|format(item.position.entry_price) }}</td>
+                    <td class="mark-price">${{ "%.4f"|format(item.position.mark_price) }}</td>
+                    <td>{% if item.position.liq_price %}${{ "%.4f"|format(item.position.liq_price) }}{% else %}-{% endif %}</td>
+                    <td class="unrealized-pnl {% if item.position.unrealized_pnl > 0 %}positive{% else %}negative{% endif %}">
+                        {% if item.position.unrealized_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(item.position.unrealized_pnl) }}
+                    </td>
+                    <td class="pnl-pct {% if item.pnl_pct > 0 %}positive{% else %}negative{% endif %}">
+                        {% if item.pnl_pct >= 0 %}+{% endif %}{{ "%.2f"|format(item.pnl_pct) }}%
                     </td>
                 </tr>
                 {% endfor %}
+                {% else %}
+                <tr id="no-positions-row">
+                    <td colspan="8" class="no-data">No open positions</td>
+                </tr>
+                {% endif %}
             </tbody>
         </table>
     </div>
-    {% endif %}
 
     <!-- Closed Trades -->
     {% if trades %}
     <div class="section-header">
-        <h3>Closed Trades</h3>
+        <h3>Closed Trades ({{ trade_count }})</h3>
     </div>
     <div class="trades-table-container">
         <table class="trades-table">
@@ -97,31 +110,31 @@
                     <th>Entry</th>
                     <th>Exit</th>
                     <th>P&L</th>
+                    <th>% of Balance</th>
                 </tr>
             </thead>
             <tbody>
-                {% for trade in trades %}
-                <tr class="{% if trade.closed_pnl > 0 %}win{% else %}loss{% endif %}">
-                    <td>{{ trade.entry_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                    <td>{{ trade.exit_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                    <td>{{ trade.symbol }}</td>
-                    <td class="{% if trade.side == 'Buy' %}buy{% else %}sell{% endif %}">
-                        {{ trade.side }}
+                {% for item in trades %}
+                <tr class="{% if item.trade.closed_pnl > 0 %}win{% else %}loss{% endif %}">
+                    <td>{{ item.trade.entry_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ item.trade.exit_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ item.trade.symbol }}</td>
+                    <td class="{% if item.trade.side == 'Buy' %}buy{% else %}sell{% endif %}">
+                        {{ item.trade.side }}
                     </td>
-                    <td>{{ trade.closed_size }}</td>
-                    <td>${{ "%.4f"|format(trade.avg_entry_price) }}</td>
-                    <td>${{ "%.4f"|format(trade.avg_exit_price) }}</td>
-                    <td class="{% if trade.closed_pnl > 0 %}positive{% else %}negative{% endif %}">
-                        {% if trade.closed_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(trade.closed_pnl) }}
+                    <td>{{ item.trade.closed_size }}</td>
+                    <td>${{ "%.4f"|format(item.trade.avg_entry_price) }}</td>
+                    <td>${{ "%.4f"|format(item.trade.avg_exit_price) }}</td>
+                    <td class="{% if item.trade.closed_pnl > 0 %}positive{% else %}negative{% endif %}">
+                        {% if item.trade.closed_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(item.trade.closed_pnl) }}
+                    </td>
+                    <td class="{% if item.pnl_pct > 0 %}positive{% else %}negative{% endif %}">
+                        {% if item.pnl_pct >= 0 %}+{% endif %}{{ "%.2f"|format(item.pnl_pct) }}%
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-    </div>
-    {% elif not open_positions %}
-    <div class="no-trades">
-        <p>No trades on this day</p>
     </div>
     {% endif %}
 </div>
@@ -129,34 +142,130 @@
 
 {% block scripts %}
 <script>
-// Auto-refresh open positions every 5 seconds
-{% if open_positions %}
-setInterval(async () => {
-    try {
-        const response = await fetch('/api/positions');
-        const data = await response.json();
+// WebSocket for realtime position updates
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsUrl = `${wsProtocol}//${window.location.host}/ws/positions`;
+let ws = null;
+let reconnectInterval = null;
+
+function connectWebSocket() {
+    ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+        console.log('WebSocket connected');
+        document.getElementById('ws-status').textContent = 'LIVE';
+        document.getElementById('ws-status').classList.add('connected');
+        if (reconnectInterval) {
+            clearInterval(reconnectInterval);
+            reconnectInterval = null;
+        }
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        updatePositions(data);
+    };
+
+    ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        document.getElementById('ws-status').textContent = 'DISCONNECTED';
+        document.getElementById('ws-status').classList.remove('connected');
+        // Reconnect after 3 seconds
+        if (!reconnectInterval) {
+            reconnectInterval = setInterval(connectWebSocket, 3000);
+        }
+    };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+}
+
+function updatePositions(data) {
+    const tbody = document.getElementById('positions-body');
+    const balanceEl = document.getElementById('current-balance');
+    const unrealizedTotalEl = document.getElementById('unrealized-total');
+
+    // Update balance
+    if (data.balance) {
+        balanceEl.textContent = '$' + parseFloat(data.balance.total_equity).toFixed(2);
+    }
+
+    // Update positions
+    if (data.positions && data.positions.length > 0) {
+        // Remove "no positions" row if exists
+        const noRow = document.getElementById('no-positions-row');
+        if (noRow) noRow.remove();
+
+        // Calculate total unrealized
+        let totalUnrealized = 0;
+        let totalUnrealizedPct = 0;
 
         data.positions.forEach(pos => {
-            const row = document.querySelector(`tr[data-symbol="${pos.symbol}"]`);
-            if (row) {
-                const markPriceCell = row.querySelector('.mark-price');
+            const pnl = parseFloat(pos.unrealized_pnl);
+            const pnlPct = parseFloat(pos.pnl_pct);
+            totalUnrealized += pnl;
+            totalUnrealizedPct += pnlPct;
+
+            let row = tbody.querySelector(`tr[data-symbol="${pos.symbol}"]`);
+
+            if (!row) {
+                // Create new row
+                row = document.createElement('tr');
+                row.className = 'open-position';
+                row.dataset.symbol = pos.symbol;
+                row.innerHTML = `
+                    <td>${pos.symbol}</td>
+                    <td class="${pos.side === 'Buy' ? 'buy' : 'sell'}">${pos.side}</td>
+                    <td>${pos.size}</td>
+                    <td>$${parseFloat(pos.entry_price).toFixed(4)}</td>
+                    <td class="mark-price">$${parseFloat(pos.mark_price).toFixed(4)}</td>
+                    <td>${pos.liq_price ? '$' + parseFloat(pos.liq_price).toFixed(4) : '-'}</td>
+                    <td class="unrealized-pnl ${pnl >= 0 ? 'positive' : 'negative'}">
+                        ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(4)}
+                    </td>
+                    <td class="pnl-pct ${pnlPct >= 0 ? 'positive' : 'negative'}">
+                        ${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%
+                    </td>
+                `;
+                tbody.appendChild(row);
+            } else {
+                // Update existing row
+                row.querySelector('.mark-price').textContent = '$' + parseFloat(pos.mark_price).toFixed(4);
+
                 const pnlCell = row.querySelector('.unrealized-pnl');
+                pnlCell.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(4);
+                pnlCell.className = 'unrealized-pnl ' + (pnl >= 0 ? 'positive' : 'negative');
 
-                if (markPriceCell) {
-                    markPriceCell.textContent = '$' + parseFloat(pos.mark_price).toFixed(4);
-                }
-
-                if (pnlCell) {
-                    const pnl = parseFloat(pos.unrealized_pnl);
-                    pnlCell.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(4);
-                    pnlCell.className = 'unrealized-pnl ' + (pnl >= 0 ? 'positive' : 'negative');
-                }
+                const pctCell = row.querySelector('.pnl-pct');
+                pctCell.textContent = (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%';
+                pctCell.className = 'pnl-pct ' + (pnlPct >= 0 ? 'positive' : 'negative');
             }
         });
-    } catch (e) {
-        console.error('Failed to refresh positions:', e);
+
+        // Update total unrealized
+        unrealizedTotalEl.innerHTML = `
+            ${totalUnrealized >= 0 ? '+' : ''}$${totalUnrealized.toFixed(4)}
+            <span class="pct">(${totalUnrealizedPct >= 0 ? '+' : ''}${totalUnrealizedPct.toFixed(2)}%)</span>
+        `;
+        unrealizedTotalEl.className = 'card-value ' + (totalUnrealized >= 0 ? 'positive' : 'negative');
+
+        // Remove rows for positions that no longer exist
+        const currentSymbols = data.positions.map(p => p.symbol);
+        tbody.querySelectorAll('tr[data-symbol]').forEach(row => {
+            if (!currentSymbols.includes(row.dataset.symbol)) {
+                row.remove();
+            }
+        });
+    } else if (data.positions && data.positions.length === 0) {
+        // No positions
+        tbody.innerHTML = '<tr id="no-positions-row"><td colspan="8" class="no-data">No open positions</td></tr>';
+        unrealizedTotalEl.innerHTML = '$0.0000 <span class="pct">(0.00%)</span>';
+        unrealizedTotalEl.className = 'card-value';
     }
-}, 5000);
-{% endif %}
+}
+
+// Connect on page load
+connectWebSocket();
 </script>
 {% endblock %}

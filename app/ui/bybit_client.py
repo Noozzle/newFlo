@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from loguru import logger
@@ -132,6 +133,8 @@ class BybitPnLClient:
         """Get all currently open positions."""
         positions: list[OpenPosition] = []
 
+        logger.debug("Fetching open positions from Bybit...")
+
         try:
             result = self._client.get_positions(
                 category=self._config.category,
@@ -141,16 +144,20 @@ class BybitPnLClient:
             logger.error(f"Error fetching open positions: {e}")
             return positions
 
-        if result.get("retCode") != 0:
-            logger.error(f"Bybit API error: {result.get('retMsg')}")
+        ret_code = result.get("retCode")
+        if ret_code != 0:
+            logger.error(f"Bybit API error: code={ret_code}, msg={result.get('retMsg')}")
             return positions
 
         data = result.get("result", {})
         items = data.get("list", [])
 
+        logger.debug(f"Received {len(items)} position entries from API")
+
         for item in items:
             try:
                 size = Decimal(item.get("size", "0"))
+                logger.debug(f"Position: {item.get('symbol')} size={size} side={item.get('side')}")
                 if size > 0:  # Only include positions with actual size
                     positions.append(OpenPosition.from_api(item))
             except Exception as e:
@@ -174,3 +181,33 @@ class BybitPnLClient:
         except Exception as e:
             logger.error(f"Error fetching ticker for {symbol}: {e}")
         return None
+
+    def get_wallet_balance(self) -> dict:
+        """Get wallet balance."""
+        try:
+            result = self._client.get_wallet_balance(
+                accountType="UNIFIED",
+            )
+            if result.get("retCode") == 0:
+                accounts = result.get("result", {}).get("list", [])
+                if accounts:
+                    account = accounts[0]
+                    total_equity = Decimal(account.get("totalEquity", "0") or "0")
+                    available = Decimal(account.get("totalAvailableBalance", "0") or "0")
+
+                    # Get USDT specifically
+                    coins = account.get("coin", [])
+                    usdt_balance = Decimal("0")
+                    for coin in coins:
+                        if coin.get("coin") == "USDT":
+                            usdt_balance = Decimal(coin.get("walletBalance", "0") or "0")
+                            break
+
+                    return {
+                        "total_equity": total_equity,
+                        "available": available,
+                        "usdt_balance": usdt_balance,
+                    }
+        except Exception as e:
+            logger.error(f"Error fetching wallet balance: {e}")
+        return {"total_equity": Decimal("0"), "available": Decimal("0"), "usdt_balance": Decimal("0")}

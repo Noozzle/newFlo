@@ -3,33 +3,58 @@
 {% block title %}{{ month_data.month_name }} {{ month_data.year }} - FloTrader{% endblock %}
 
 {% block content %}
+<!-- Account Balance -->
+<div class="account-banner">
+    <div class="account-info">
+        <span class="label">Account Balance:</span>
+        <span class="value" id="account-balance">${{ "%.2f"|format(balance) }}</span>
+    </div>
+    {% if open_positions %}
+    <div class="account-info">
+        <span class="label">Unrealized P&L:</span>
+        <span class="value {% if total_unrealized >= 0 %}positive{% else %}negative{% endif %}" id="total-unrealized">
+            {% if total_unrealized >= 0 %}+{% endif %}${{ "%.4f"|format(total_unrealized) }}
+            <span class="pct">({{ "%.2f"|format(total_unrealized_pct) }}%)</span>
+        </span>
+    </div>
+    {% endif %}
+    <span class="badge live" id="ws-status">CONNECTING...</span>
+</div>
+
 <!-- Open Positions Banner -->
 {% if open_positions %}
 <div class="open-positions-banner">
     <div class="banner-header">
-        <h3>Open Positions <span class="badge live">LIVE</span></h3>
-        <span class="unrealized-total {% if total_unrealized >= 0 %}positive{% else %}negative{% endif %}">
-            Unrealized: {% if total_unrealized >= 0 %}+{% endif %}${{ "%.4f"|format(total_unrealized) }}
-        </span>
+        <h3>Open Positions ({{ open_positions|length }})</h3>
     </div>
-    <div class="positions-grid">
-        {% for pos in open_positions %}
-        <div class="position-card" data-symbol="{{ pos.symbol }}">
-            <div class="position-symbol">{{ pos.symbol }}</div>
-            <div class="position-side {% if pos.side == 'Buy' %}buy{% else %}sell{% endif %}">{{ pos.side }}</div>
+    <div class="positions-grid" id="positions-grid">
+        {% for item in open_positions %}
+        <div class="position-card" data-symbol="{{ item.position.symbol }}">
+            <div class="position-symbol">{{ item.position.symbol }}</div>
+            <div class="position-side {% if item.position.side == 'Buy' %}buy{% else %}sell{% endif %}">{{ item.position.side }}</div>
             <div class="position-details">
-                <span>Size: {{ pos.size }}</span>
-                <span>Entry: ${{ "%.4f"|format(pos.entry_price) }}</span>
+                <span>Size: {{ item.position.size }}</span>
+                <span>Entry: ${{ "%.4f"|format(item.position.entry_price) }}</span>
             </div>
-            <div class="position-pnl {% if pos.unrealized_pnl >= 0 %}positive{% else %}negative{% endif %}">
-                {% if pos.unrealized_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(pos.unrealized_pnl) }}
+            <div class="position-pnl {% if item.position.unrealized_pnl >= 0 %}positive{% else %}negative{% endif %}">
+                {% if item.position.unrealized_pnl >= 0 %}+{% endif %}${{ "%.4f"|format(item.position.unrealized_pnl) }}
+            </div>
+            <div class="position-pct {% if item.pnl_pct >= 0 %}positive{% else %}negative{% endif %}">
+                {% if item.pnl_pct >= 0 %}+{% endif %}{{ "%.2f"|format(item.pnl_pct) }}%
             </div>
             <div class="position-price">
-                Mark: <span class="mark-price">${{ "%.4f"|format(pos.mark_price) }}</span>
+                Mark: <span class="mark-price">${{ "%.4f"|format(item.position.mark_price) }}</span>
             </div>
         </div>
         {% endfor %}
     </div>
+</div>
+{% else %}
+<div class="open-positions-banner empty">
+    <div class="banner-header">
+        <h3>No Open Positions</h3>
+    </div>
+    <div class="positions-grid" id="positions-grid"></div>
 </div>
 {% endif %}
 
@@ -53,12 +78,6 @@
             <span class="label">Total Trades</span>
             <span class="value">{{ month_data.month_trades }}</span>
         </div>
-        {% if open_positions %}
-        <div class="summary-item">
-            <span class="label">Open Positions</span>
-            <span class="value">{{ open_positions|length }}</span>
-        </div>
-        {% endif %}
     </div>
 
     <!-- Weekday headers -->
@@ -73,7 +92,7 @@
 
         <!-- Calendar days -->
         {% for day in calendar_days %}
-        <div class="{{ day.css_class }}" {% if day.number and day.stats %}onclick="window.location='/day/{{ day.date_str }}?tz={{ tz }}'"{% endif %}>
+        <div class="{{ day.css_class }}" {% if day.number %}onclick="window.location='/day/{{ day.date_str }}?tz={{ tz }}'"{% endif %}>
             {% if day.number %}
             <span class="day-number">{{ day.number }}</span>
             {% if day.stats %}
@@ -107,46 +126,136 @@
 
 {% block scripts %}
 <script src="/static/js/calendar.js"></script>
-{% if open_positions %}
 <script>
-// Auto-refresh open positions every 5 seconds
-setInterval(async () => {
-    try {
-        const response = await fetch('/api/positions');
-        const data = await response.json();
+// WebSocket for realtime updates
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsUrl = `${wsProtocol}//${window.location.host}/ws/positions`;
+let ws = null;
+let reconnectInterval = null;
 
+function connectWebSocket() {
+    ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+        console.log('WebSocket connected');
+        document.getElementById('ws-status').textContent = 'LIVE';
+        document.getElementById('ws-status').classList.add('connected');
+        if (reconnectInterval) {
+            clearInterval(reconnectInterval);
+            reconnectInterval = null;
+        }
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        updateDisplay(data);
+    };
+
+    ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        document.getElementById('ws-status').textContent = 'DISCONNECTED';
+        document.getElementById('ws-status').classList.remove('connected');
+        if (!reconnectInterval) {
+            reconnectInterval = setInterval(connectWebSocket, 3000);
+        }
+    };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+}
+
+function updateDisplay(data) {
+    // Update balance
+    const balanceEl = document.getElementById('account-balance');
+    if (balanceEl && data.balance) {
+        balanceEl.textContent = '$' + parseFloat(data.balance.total_equity).toFixed(2);
+    }
+
+    // Update positions
+    const grid = document.getElementById('positions-grid');
+    const unrealizedEl = document.getElementById('total-unrealized');
+
+    if (data.positions && data.positions.length > 0) {
         let totalUnrealized = 0;
+        let totalUnrealizedPct = 0;
 
         data.positions.forEach(pos => {
-            totalUnrealized += parseFloat(pos.unrealized_pnl);
+            const pnl = parseFloat(pos.unrealized_pnl);
+            const pnlPct = parseFloat(pos.pnl_pct);
+            totalUnrealized += pnl;
+            totalUnrealizedPct += pnlPct;
 
-            const card = document.querySelector(`.position-card[data-symbol="${pos.symbol}"]`);
-            if (card) {
-                const pnlEl = card.querySelector('.position-pnl');
-                const priceEl = card.querySelector('.mark-price');
+            let card = grid.querySelector(`.position-card[data-symbol="${pos.symbol}"]`);
 
-                if (pnlEl) {
-                    const pnl = parseFloat(pos.unrealized_pnl);
-                    pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(4);
-                    pnlEl.className = 'position-pnl ' + (pnl >= 0 ? 'positive' : 'negative');
-                }
+            if (!card) {
+                // Create new card
+                card = document.createElement('div');
+                card.className = 'position-card';
+                card.dataset.symbol = pos.symbol;
+                grid.appendChild(card);
+            }
 
-                if (priceEl) {
-                    priceEl.textContent = '$' + parseFloat(pos.mark_price).toFixed(4);
-                }
+            card.innerHTML = `
+                <div class="position-symbol">${pos.symbol}</div>
+                <div class="position-side ${pos.side === 'Buy' ? 'buy' : 'sell'}">${pos.side}</div>
+                <div class="position-details">
+                    <span>Size: ${pos.size}</span>
+                    <span>Entry: $${parseFloat(pos.entry_price).toFixed(4)}</span>
+                </div>
+                <div class="position-pnl ${pnl >= 0 ? 'positive' : 'negative'}">
+                    ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(4)}
+                </div>
+                <div class="position-pct ${pnlPct >= 0 ? 'positive' : 'negative'}">
+                    ${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%
+                </div>
+                <div class="position-price">
+                    Mark: <span class="mark-price">$${parseFloat(pos.mark_price).toFixed(4)}</span>
+                </div>
+            `;
+        });
+
+        // Update total
+        if (unrealizedEl) {
+            unrealizedEl.innerHTML = `
+                ${totalUnrealized >= 0 ? '+' : ''}$${totalUnrealized.toFixed(4)}
+                <span class="pct">(${totalUnrealizedPct >= 0 ? '+' : ''}${totalUnrealizedPct.toFixed(2)}%)</span>
+            `;
+            unrealizedEl.className = 'value ' + (totalUnrealized >= 0 ? 'positive' : 'negative');
+        }
+
+        // Remove closed positions
+        const currentSymbols = data.positions.map(p => p.symbol);
+        grid.querySelectorAll('.position-card').forEach(card => {
+            if (!currentSymbols.includes(card.dataset.symbol)) {
+                card.remove();
             }
         });
 
-        // Update total unrealized
-        const totalEl = document.querySelector('.unrealized-total');
-        if (totalEl) {
-            totalEl.textContent = 'Unrealized: ' + (totalUnrealized >= 0 ? '+' : '') + '$' + totalUnrealized.toFixed(4);
-            totalEl.className = 'unrealized-total ' + (totalUnrealized >= 0 ? 'positive' : 'negative');
+        // Update banner title
+        const banner = document.querySelector('.open-positions-banner');
+        if (banner) {
+            banner.classList.remove('empty');
+            const title = banner.querySelector('h3');
+            if (title) title.textContent = `Open Positions (${data.positions.length})`;
         }
-    } catch (e) {
-        console.error('Failed to refresh positions:', e);
+    } else {
+        // No positions
+        grid.innerHTML = '';
+        if (unrealizedEl) {
+            unrealizedEl.innerHTML = '$0.0000 <span class="pct">(0.00%)</span>';
+            unrealizedEl.className = 'value';
+        }
+        const banner = document.querySelector('.open-positions-banner');
+        if (banner) {
+            banner.classList.add('empty');
+            const title = banner.querySelector('h3');
+            if (title) title.textContent = 'No Open Positions';
+        }
     }
-}, 5000);
+}
+
+// Connect on page load
+connectWebSocket();
 </script>
-{% endif %}
 {% endblock %}

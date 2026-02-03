@@ -36,7 +36,10 @@ def convert_to_tz(dt: datetime, use_utc: bool = True) -> datetime:
             return dt
         return dt.astimezone() if LOCAL_TZ is None else dt.astimezone(LOCAL_TZ)
 
-from fastapi import FastAPI, Request
+import asyncio
+import json
+
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -192,9 +195,22 @@ async def calendar_view(
     # Get data
     month_data, calendar_days = get_calendar_data(year, month, use_utc)
 
-    # Get open positions
+    # Get balance and open positions
+    balance = pnl_client.get_wallet_balance() if pnl_client else {"total_equity": Decimal("0")}
+    total_equity = balance["total_equity"]
+
     open_positions = pnl_client.get_open_positions() if pnl_client else []
     total_unrealized = sum(p.unrealized_pnl for p in open_positions)
+    total_unrealized_pct = (total_unrealized / total_equity * 100) if total_equity > 0 else Decimal("0")
+
+    # Add % PnL to positions
+    open_positions_with_pct = []
+    for pos in open_positions:
+        pnl_pct = (pos.unrealized_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
+        open_positions_with_pct.append({
+            "position": pos,
+            "pnl_pct": pnl_pct,
+        })
 
     return templates.TemplateResponse(
         "calendar.html",
@@ -210,8 +226,10 @@ async def calendar_view(
             "testnet": _config.bybit.testnet if _config else True,
             "use_utc": use_utc,
             "tz": tz.lower(),
-            "open_positions": open_positions,
+            "open_positions": open_positions_with_pct,
             "total_unrealized": total_unrealized,
+            "total_unrealized_pct": total_unrealized_pct,
+            "balance": total_equity,
         },
     )
 
@@ -230,48 +248,64 @@ async def day_detail(
     use_utc = tz.lower() != "local"
     target_date = date(year, month, day)
 
+    # Get current balance for % calculations
+    balance = pnl_client.get_wallet_balance()
+    total_equity = balance["total_equity"]
+
     # Fetch trades
     all_trades = pnl_client.get_day_trades(target_date)
 
-    # Filter trades by ENTRY time in selected timezone
-    trades = []
+    # Filter trades by ENTRY time in selected timezone and add % PnL
+    trades_with_pct = []
     for trade in all_trades:
         local_entry_time = convert_to_tz(trade.entry_time, use_utc)
         if local_entry_time.date() == target_date:
-            trades.append(trade)
+            # Calculate PnL as % of current equity (approximation)
+            pnl_pct = (trade.closed_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
+            trades_with_pct.append({
+                "trade": trade,
+                "pnl_pct": pnl_pct,
+            })
 
     # Sort by entry time
-    trades.sort(key=lambda t: t.entry_time)
+    trades_with_pct.sort(key=lambda t: t["trade"].entry_time)
 
-    # Get open positions that were opened on this day
+    # Get ALL open positions (not just today's)
     all_open = pnl_client.get_open_positions()
-    open_positions = []
+    open_positions_with_pct = []
     for pos in all_open:
-        local_created = convert_to_tz(pos.created_time, use_utc)
-        if local_created.date() == target_date:
-            open_positions.append(pos)
+        pnl_pct = (pos.unrealized_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
+        open_positions_with_pct.append({
+            "position": pos,
+            "pnl_pct": pnl_pct,
+        })
 
     # Calculate stats (closed trades only)
-    total_pnl = sum(t.closed_pnl for t in trades)
-    winning = [t for t in trades if t.closed_pnl > 0]
-    losing = [t for t in trades if t.closed_pnl <= 0]
+    total_pnl = sum(t["trade"].closed_pnl for t in trades_with_pct)
+    total_pnl_pct = (total_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
+    winning = [t for t in trades_with_pct if t["trade"].closed_pnl > 0]
+    losing = [t for t in trades_with_pct if t["trade"].closed_pnl <= 0]
 
     # Unrealized PnL from open positions
-    unrealized_pnl = sum(p.unrealized_pnl for p in open_positions)
+    unrealized_pnl = sum(p["position"].unrealized_pnl for p in open_positions_with_pct)
+    unrealized_pnl_pct = (unrealized_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
 
     return templates.TemplateResponse(
         "day.html",
         {
             "request": request,
             "date": target_date,
-            "trades": trades,
-            "open_positions": open_positions,
+            "trades": trades_with_pct,
+            "open_positions": open_positions_with_pct,
             "total_pnl": total_pnl,
+            "total_pnl_pct": total_pnl_pct,
             "unrealized_pnl": unrealized_pnl,
-            "trade_count": len(trades),
+            "unrealized_pnl_pct": unrealized_pnl_pct,
+            "trade_count": len(trades_with_pct),
             "winning_count": len(winning),
             "losing_count": len(losing),
-            "win_rate": len(winning) / len(trades) * 100 if trades else 0,
+            "win_rate": len(winning) / len(trades_with_pct) * 100 if trades_with_pct else 0,
+            "balance": total_equity,
             "testnet": _config.bybit.testnet if _config else True,
             "use_utc": use_utc,
             "tz": tz.lower(),
@@ -300,6 +334,109 @@ async def get_positions():
             for p in positions
         ]
     }
+
+
+@app.get("/api/debug/positions")
+async def debug_positions():
+    """Debug endpoint to see raw positions data from Bybit."""
+    assert pnl_client is not None
+    assert _config is not None
+
+    try:
+        result = pnl_client._client.get_positions(
+            category=_config.bybit.category,
+            settleCoin="USDT",
+        )
+        return {
+            "config": {
+                "category": _config.bybit.category,
+                "testnet": _config.bybit.testnet,
+            },
+            "raw_response": result,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/api/balance")
+async def get_balance():
+    """Get current wallet balance."""
+    assert pnl_client is not None
+    balance = pnl_client.get_wallet_balance()
+    return {
+        "total_equity": str(balance["total_equity"]),
+        "available": str(balance["available"]),
+        "usdt_balance": str(balance["usdt_balance"]),
+    }
+
+
+# WebSocket connections manager
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except Exception:
+                pass
+
+
+ws_manager = ConnectionManager()
+
+
+@app.websocket("/ws/positions")
+async def websocket_positions(websocket: WebSocket):
+    """WebSocket endpoint for realtime position updates."""
+    await ws_manager.connect(websocket)
+    try:
+        while True:
+            # Fetch positions and balance every second
+            if pnl_client:
+                positions = pnl_client.get_open_positions()
+                balance = pnl_client.get_wallet_balance()
+
+                data = {
+                    "type": "update",
+                    "balance": {
+                        "total_equity": str(balance["total_equity"]),
+                        "available": str(balance["available"]),
+                    },
+                    "positions": [
+                        {
+                            "symbol": p.symbol,
+                            "side": p.side,
+                            "size": str(p.size),
+                            "entry_price": str(p.entry_price),
+                            "mark_price": str(p.mark_price),
+                            "unrealized_pnl": str(p.unrealized_pnl),
+                            "pnl_pct": str(
+                                (p.unrealized_pnl / balance["total_equity"] * 100)
+                                if balance["total_equity"] > 0 else Decimal("0")
+                            ),
+                            "leverage": p.leverage,
+                            "liq_price": str(p.liq_price) if p.liq_price else None,
+                            "position_value": str(p.position_value) if p.position_value else None,
+                        }
+                        for p in positions
+                    ],
+                }
+                await websocket.send_json(data)
+
+            await asyncio.sleep(1)  # Update every second
+    except WebSocketDisconnect:
+        ws_manager.disconnect(websocket)
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        ws_manager.disconnect(websocket)
 
 
 @app.get("/api/debug/{year}/{month}")

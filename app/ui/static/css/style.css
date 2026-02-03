@@ -442,6 +442,37 @@ body {
     background-color: rgba(59, 130, 246, 0.2);
 }
 
+/* Account Banner */
+.account-banner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 16px 24px;
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.account-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.account-info .label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.account-info .value {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.account-banner .badge {
+    margin-left: auto;
+}
+
 /* Open Positions Banner */
 .open-positions-banner {
     background-color: var(--bg-secondary);
@@ -511,10 +542,74 @@ body {
     font-weight: 600;
 }
 
+.position-pct {
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: right;
+}
+
 .position-price {
     text-align: right;
     font-size: 0.9rem;
     color: var(--text-secondary);
+}
+
+/* Empty state for positions banner */
+.open-positions-banner.empty {
+    opacity: 0.6;
+    border: 1px dashed var(--border);
+}
+
+/* Balance display */
+.balance-display {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.balance-display span {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* PnL percentage */
+.pct {
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+/* No data message */
+.no-data {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-secondary);
+}
+
+/* WebSocket status */
+#ws-status {
+    transition: all 0.3s;
+}
+
+#ws-status.connected {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: var(--positive);
+    animation: none;
+}
+
+/* Day header layout */
+.day-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.day-header h2 {
+    flex: 1;
+}
+
+.day-header .balance-display {
+    margin-left: auto;
 }
 
 /* Footer */
