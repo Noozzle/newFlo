@@ -82,17 +82,26 @@ class MarketTradeEvent(BaseEvent):
 @dataclass(kw_only=True)
 class OrderBookEvent(BaseEvent):
     """Order book snapshot/update event."""
-    bid_price: Decimal
-    bid_size: Decimal
-    ask_price: Decimal
-    ask_size: Decimal
+    # Use Union type for float/Decimal flexibility (fast_orderbook_mode optimization)
+    bid_price: Decimal | float
+    bid_size: Decimal | float
+    ask_price: Decimal | float
+    ask_size: Decimal | float
+    # Extended fields for Bybit orderbook stream
+    update_id: int | None = None  # Bybit 'u' field - update id
+    seq: int | None = None  # Bybit cross sequence
+    exchange_ts: datetime | None = None  # Bybit 'cts' - matching engine time
+    system_ts: datetime | None = None  # Bybit 'ts' - system timestamp
+    local_ts: datetime | None = None  # Local receive time (utcnow)
 
     @property
-    def mid_price(self) -> Decimal:
+    def mid_price(self) -> Decimal | float:
+        """Return same type as input prices."""
         return (self.bid_price + self.ask_price) / 2
 
     @property
-    def spread(self) -> Decimal:
+    def spread(self) -> Decimal | float:
+        """Return same type as input prices."""
         return self.ask_price - self.bid_price
 
 

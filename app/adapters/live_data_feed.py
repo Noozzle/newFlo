@@ -52,6 +52,8 @@ class LiveDataFeed(DataFeed):
         self._reconnect_task: asyncio.Task | None = None
         self._handlers_registered = False
         self._loop: asyncio.AbstractEventLoop | None = None  # Store loop for thread-safe publish
+        # Orderbook dedupe cache: last update_id per symbol
+        self._last_orderbook_u: dict[str, int] = {}
 
         if not PYBIT_AVAILABLE:
             raise ImportError("pybit is required for live data feed. Install with: pip install pybit")
@@ -173,10 +175,43 @@ class LiveDataFeed(DataFeed):
             logger.error(f"Error handling trade message: {e}")
 
     def _handle_orderbook(self, symbol: str, message: dict[str, Any]) -> None:
-        """Handle orderbook message from WebSocket."""
+        """Handle orderbook message from WebSocket.
+
+        Parses Bybit orderbook stream fields:
+        - cts: matching engine timestamp (primary)
+        - ts: system timestamp (fallback)
+        - u: update id (for dedupe)
+        - seq: cross sequence
+
+        Bybit re-pushes snapshots every 3s if no changes, with same u - we skip those.
+        """
         try:
+            local_ts = datetime.utcnow()  # Capture local receive time immediately
             data = message.get("data", {})
-            timestamp = datetime.utcfromtimestamp(int(message.get("ts", 0)) / 1000)
+
+            # Parse timestamps
+            ts_ms = int(message.get("ts", 0))
+            cts_ms = int(data.get("cts", 0)) if data.get("cts") else None
+            system_ts = datetime.utcfromtimestamp(ts_ms / 1000) if ts_ms else None
+            exchange_ts = datetime.utcfromtimestamp(cts_ms / 1000) if cts_ms else None
+
+            # Use cts (matching engine time) as primary timestamp, fallback to ts
+            timestamp = exchange_ts if exchange_ts else system_ts
+            if timestamp is None:
+                timestamp = local_ts
+
+            # Parse update_id and seq
+            update_id = int(data.get("u", 0)) if data.get("u") else None
+            seq = int(data.get("seq", 0)) if data.get("seq") else None
+
+            # Dedupe: skip if same update_id as last (Bybit re-pushes snapshots every 3s)
+            if update_id is not None:
+                last_u = self._last_orderbook_u.get(symbol)
+                if last_u is not None and update_id == last_u and update_id != 1:
+                    # Same update_id and not a resync (u=1) - skip duplicate
+                    return
+                # Update cache (including resync u=1)
+                self._last_orderbook_u[symbol] = update_id
 
             bids = data.get("b", [])
             asks = data.get("a", [])
@@ -195,6 +230,11 @@ class LiveDataFeed(DataFeed):
                 bid_size=bid_size,
                 ask_price=ask_price,
                 ask_size=ask_size,
+                update_id=update_id,
+                seq=seq,
+                exchange_ts=exchange_ts,
+                system_ts=system_ts,
+                local_ts=local_ts,
             )
 
             # Publish to event bus (thread-safe from WS callback)
@@ -210,8 +250,11 @@ class LiveDataFeed(DataFeed):
             data = message.get("data", [])
 
             for kline in data:
-                timestamp = datetime.utcfromtimestamp(int(kline.get("start", 0)) / 1000)
                 is_closed = kline.get("confirm", False)
+                # Use "end" timestamp for closed candles (consistent with backtest)
+                # For open candles use "start" as fallback
+                ts_ms = int(kline.get("end", kline.get("start", 0)))
+                timestamp = datetime.utcfromtimestamp(ts_ms / 1000)
 
                 # Log closed candles
                 if is_closed:

@@ -43,7 +43,7 @@ class DataRecorder:
             ("1m.csv", ["timestamp", "open", "high", "low", "close", "volume"]),
             ("15m.csv", ["timestamp", "open", "high", "low", "close", "volume"]),
             ("trades.csv", ["timestamp", "price", "amount", "side"]),
-            ("orderbook.csv", ["timestamp", "bid_price", "bid_size", "ask_price", "ask_size", "mid_price"]),
+            ("orderbook.csv", ["timestamp", "system_ts", "local_ts", "update_id", "seq", "bid_price", "bid_size", "ask_price", "ask_size", "mid_price"]),
         ]
 
         for symbol in symbols:
@@ -91,9 +91,18 @@ class DataRecorder:
         await self._write_row(event.symbol, "trades.csv", data)
 
     async def record_orderbook(self, event: OrderBookEvent) -> None:
-        """Record an orderbook event."""
+        """Record an orderbook event with extended Bybit fields."""
+        # timestamp = exchange_ts (cts) as primary, fallback to event.timestamp
+        exchange_ts = event.exchange_ts if event.exchange_ts else event.timestamp
+        system_ts = event.system_ts if event.system_ts else ""
+        local_ts = event.local_ts if event.local_ts else ""
+
         data = {
-            "timestamp": event.timestamp.strftime("%Y-%m-%d %H:%M:%S.%f"),
+            "timestamp": exchange_ts.strftime("%Y-%m-%d %H:%M:%S.%f") if exchange_ts else "",
+            "system_ts": system_ts.strftime("%Y-%m-%d %H:%M:%S.%f") if system_ts else "",
+            "local_ts": local_ts.strftime("%Y-%m-%d %H:%M:%S.%f") if local_ts else "",
+            "update_id": str(event.update_id) if event.update_id is not None else "",
+            "seq": str(event.seq) if event.seq is not None else "",
             "bid_price": str(event.bid_price),
             "bid_size": str(event.bid_size),
             "ask_price": str(event.ask_price),

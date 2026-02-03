@@ -56,6 +56,37 @@ class StrategyParams(BaseModel):
     atr_multiplier: Decimal = Field(default=Decimal("1.5"), description="ATR multiplier for SL")
     lookback_trades: int = Field(default=100, description="Number of trades to look back")
     cooldown_seconds: int = Field(default=60, description="Cooldown between trades")
+    # Volume estimation from kline
+    use_kline_volume_when_no_trades: bool = Field(
+        default=True,
+        description="Use kline volume estimation when no trade events received"
+    )
+    no_trades_timeout_seconds: int = Field(
+        default=5,
+        description="Seconds without trades before falling back to kline volume estimation"
+    )
+    # Orderbook delta calculation
+    use_time_based_delta: bool = Field(
+        default=True,
+        description="Use time-based delta calculation instead of tick-based"
+    )
+    ob_window_ms: int = Field(
+        default=500,
+        description="Time window in ms for recent orderbook snapshots"
+    )
+    ob_compare_gap_ms: int = Field(
+        default=0,
+        description="Gap between windows in ms (0 = same as ob_window_ms)"
+    )
+    # Performance optimization
+    fast_orderbook_mode: bool = Field(
+        default=True,
+        description="Use float parsing for orderbook prices in backtest (faster, epsilon precision trade-off)"
+    )
+    orderbook_bucket_ms: int = Field(
+        default=50,
+        description="Downsample orderbook to bucket_ms intervals (0 = disabled, keeps all events)"
+    )
 
 
 class StrategyConfig(BaseModel):

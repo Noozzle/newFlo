@@ -1,4 +1,13 @@
-"""Parameter optimization script for FloTrader."""
+"""Parameter optimization script for FloTrader.
+
+Performance optimizations applied:
+- fast_orderbook_mode=True (float parsing)
+- orderbook_bucket_ms=500 (aggressive downsampling)
+- Single symbol by default (SOLUSDT)
+- 5-day test period (2026-01-30 to 2026-02-03)
+
+To run full optimization with all symbols, modify limit_symbols parameter.
+"""
 
 import asyncio
 import subprocess
@@ -9,26 +18,41 @@ import yaml
 
 
 # Parameter combinations to test
-# Round 2: Fine-tune around best ATR=2.5, R:R=3.0 + test other params
+# Round 3: Optimized for speed + comprehensive testing
 PARAMS = [
+    # Quick baseline test (minimal params for speed check)
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0},  # baseline
+
     # Fine-tune ATR around 2.5
     {"atr_multiplier": 2.0, "rr_ratio": 3.0},
     {"atr_multiplier": 2.25, "rr_ratio": 3.0},
-    {"atr_multiplier": 2.5, "rr_ratio": 3.0},  # baseline
     {"atr_multiplier": 2.75, "rr_ratio": 3.0},
+    {"atr_multiplier": 3.0, "rr_ratio": 3.0},
+
     # Test higher R:R with best ATR
+    {"atr_multiplier": 2.5, "rr_ratio": 2.5},
     {"atr_multiplier": 2.5, "rr_ratio": 3.5},
     {"atr_multiplier": 2.5, "rr_ratio": 4.0},
-    # Test imbalance threshold
+
+    # Test imbalance threshold (critical for entry quality)
     {"atr_multiplier": 2.5, "rr_ratio": 3.0, "imbalance_threshold": 0.15},
     {"atr_multiplier": 2.5, "rr_ratio": 3.0, "imbalance_threshold": 0.25},
     {"atr_multiplier": 2.5, "rr_ratio": 3.0, "imbalance_threshold": 0.30},
+
     # Test delta threshold
     {"atr_multiplier": 2.5, "rr_ratio": 3.0, "delta_threshold": 0.05},
     {"atr_multiplier": 2.5, "rr_ratio": 3.0, "delta_threshold": 0.15},
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "delta_threshold": 0.20},
+
     # Test trend period
     {"atr_multiplier": 2.5, "rr_ratio": 3.0, "trend_period": 10},
     {"atr_multiplier": 2.5, "rr_ratio": 3.0, "trend_period": 20},
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "trend_period": 30},
+
+    # Test cooldown (prevent overtrading)
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "cooldown_seconds": 30},
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "cooldown_seconds": 120},
+    {"atr_multiplier": 2.5, "rr_ratio": 3.0, "cooldown_seconds": 300},
 ]
 
 
@@ -55,6 +79,20 @@ def run_backtest(params: dict) -> dict:
         config["strategy"]["params"]["trend_period"] = params["trend_period"]
     if "cooldown_seconds" in params:
         config["strategy"]["params"]["cooldown_seconds"] = params["cooldown_seconds"]
+
+    # Force performance optimizations for all backtests
+    config["strategy"]["params"]["fast_orderbook_mode"] = True
+    config["strategy"]["params"]["orderbook_bucket_ms"] = 500  # Aggressive downsampling for optimization
+
+    # Limit symbols for faster optimization (can be customized)
+    if params.get("limit_symbols", False):
+        config["symbols"]["trade"] = ["SOLUSDT"]  # Single symbol for speed
+        config["symbols"]["record"] = []
+
+    # Set consistent date range for optimization (can be overridden)
+    if "start_date" not in params:
+        config["backtest"]["start_date"] = "2026-01-30"
+        config["backtest"]["end_date"] = "2026-02-03"
 
     # Save temp config
     param_str = "_".join(f"{k}{v}" for k, v in params.items())

@@ -146,11 +146,20 @@ class OpenPosition:
     @property
     def initial_risk(self) -> Decimal:
         """Get initial risk amount."""
-        risk_per_unit = abs(self.entry_price - self.sl_price)
-        return risk_per_unit * self.size
+        # Convert to float for mixed-type arithmetic (fast_orderbook_mode compatibility)
+        risk_per_unit = abs(float(self.entry_price) - float(self.sl_price))
+        return Decimal(str(risk_per_unit * float(self.size)))
 
-    def unrealized_pnl(self, current_price: Decimal) -> Decimal:
+    def unrealized_pnl(self, current_price: Decimal | float) -> Decimal:
         """Calculate unrealized P&L."""
+        # Convert to float for mixed-type arithmetic (fast_orderbook_mode compatibility)
+        price = float(current_price)
+        entry = float(self.entry_price)
+        size = float(self.size)
+
         if self.side == Side.BUY:
-            return (current_price - self.entry_price) * self.size
-        return (self.entry_price - current_price) * self.size
+            pnl = (price - entry) * size
+        else:
+            pnl = (entry - price) * size
+
+        return Decimal(str(pnl))

@@ -66,6 +66,26 @@ class PendingOrder:
     created_at: datetime = field(default_factory=datetime.utcnow)
 
 
+def _ensure_decimal(value: Decimal | float) -> Decimal:
+    """
+    Convert float to Decimal for precise comparisons.
+
+    Used when fast_orderbook_mode=True to convert float prices
+    back to Decimal at critical decision points (SL/TP, limit fills).
+
+    Args:
+        value: Price value (Decimal or float)
+
+    Returns:
+        Decimal representation
+    """
+    if isinstance(value, Decimal):
+        return value
+    # Use string conversion to avoid float precision issues
+    # e.g., Decimal(0.1) != Decimal("0.1")
+    return Decimal(str(value))
+
+
 class SimulatedExchangeAdapter(ExchangeAdapter):
     """
     Simulated exchange for backtesting.
@@ -597,9 +617,14 @@ class SimulatedExchangeAdapter(ExchangeAdapter):
         Process orderbook update - check limit orders and SL/TP.
 
         This should be called by the engine for each orderbook event.
+        Handles both Decimal and float prices from fast_orderbook_mode.
         """
         self._current_time = event.timestamp
-        self._last_prices[event.symbol] = (event.bid_price, event.ask_price)
+
+        # Store prices - convert to Decimal for internal consistency
+        bid = _ensure_decimal(event.bid_price)
+        ask = _ensure_decimal(event.ask_price)
+        self._last_prices[event.symbol] = (bid, ask)
 
         # Check pending limit orders
         await self._check_limit_orders(event)
@@ -611,16 +636,20 @@ class SimulatedExchangeAdapter(ExchangeAdapter):
         """Check if any limit orders should be filled."""
         to_fill = []
 
+        # Ensure Decimal for comparisons
+        bid_price = _ensure_decimal(event.bid_price)
+        ask_price = _ensure_decimal(event.ask_price)
+
         for order_id, order in self._pending_orders.items():
             if order.symbol != event.symbol:
                 continue
 
             # Buy limit fills when ask <= order price
-            if order.side == Side.BUY and event.ask_price <= order.price:
-                to_fill.append((order_id, event.ask_price))
+            if order.side == Side.BUY and ask_price <= order.price:
+                to_fill.append((order_id, ask_price))
             # Sell limit fills when bid >= order price
-            elif order.side == Side.SELL and event.bid_price >= order.price:
-                to_fill.append((order_id, event.bid_price))
+            elif order.side == Side.SELL and bid_price >= order.price:
+                to_fill.append((order_id, bid_price))
 
         for order_id, fill_price in to_fill:
             order = self._pending_orders.pop(order_id)
@@ -670,22 +699,26 @@ class SimulatedExchangeAdapter(ExchangeAdapter):
         triggered = None
         trigger_price = None
 
+        # Ensure Decimal for precise SL/TP comparisons
+        bid_price = _ensure_decimal(event.bid_price)
+        ask_price = _ensure_decimal(event.ask_price)
+
         if pos.side == Side.BUY:
             # Long position: SL triggers on bid, TP triggers on bid
-            if pos.sl_price and event.bid_price <= pos.sl_price:
+            if pos.sl_price and bid_price <= pos.sl_price:
                 triggered = "sl"
-                trigger_price = event.bid_price
-            elif pos.tp_price and event.bid_price >= pos.tp_price:
+                trigger_price = bid_price
+            elif pos.tp_price and bid_price >= pos.tp_price:
                 triggered = "tp"
-                trigger_price = event.bid_price
+                trigger_price = bid_price
         else:
             # Short position: SL triggers on ask, TP triggers on ask
-            if pos.sl_price and event.ask_price >= pos.sl_price:
+            if pos.sl_price and ask_price >= pos.sl_price:
                 triggered = "sl"
-                trigger_price = event.ask_price
-            elif pos.tp_price and event.ask_price <= pos.tp_price:
+                trigger_price = ask_price
+            elif pos.tp_price and ask_price <= pos.tp_price:
                 triggered = "tp"
-                trigger_price = event.ask_price
+                trigger_price = ask_price
 
         if triggered and trigger_price:
             close_side = pos.side.opposite
