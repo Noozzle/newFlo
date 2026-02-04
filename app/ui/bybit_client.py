@@ -119,15 +119,28 @@ class BybitPnLClient:
         logger.info(f"Total fetched: {len(records)} closed PnL records")
         return records
 
-    def get_day_trades(self, target_date: date) -> list[ClosedPnLRecord]:
-        """Get all trades for a specific day (by entry time)."""
-        if isinstance(target_date, date):
-            start = datetime(target_date.year, target_date.month, target_date.day, tzinfo=timezone.utc)
-        else:
-            start = target_date
+    def get_month_trades(self, year: int, month: int) -> list[ClosedPnLRecord]:
+        """Get all trades for a specific month.
 
-        end = start + timedelta(days=1)
-        return self.get_closed_pnl(start, end)
+        Note: Bybit API filters by exit time (updatedTime), so we fetch
+        the entire month. Filtering by entry date should be done by caller
+        with proper timezone handling.
+        """
+        month_start = datetime(year, month, 1, tzinfo=timezone.utc)
+        if month == 12:
+            month_end = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
+        else:
+            month_end = datetime(year, month + 1, 1, tzinfo=timezone.utc)
+
+        return self.get_closed_pnl(month_start, month_end)
+
+    def get_day_trades(self, target_date: date) -> list[ClosedPnLRecord]:
+        """Get all trades for a specific day (by entry time in UTC).
+
+        Note: This returns all trades for the month. For proper timezone
+        handling, use get_month_trades and filter in the caller.
+        """
+        return self.get_month_trades(target_date.year, target_date.month)
 
     def get_open_positions(self) -> list[OpenPosition]:
         """Get all currently open positions."""
