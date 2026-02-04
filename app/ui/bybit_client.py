@@ -104,7 +104,7 @@ class BybitPnLClient:
                         records.append(record)
                         logger.debug(
                             f"  Trade: {record.symbol} {record.side} "
-                            f"PnL={record.closed_pnl} @ {record.closed_time}"
+                            f"PnL={record.closed_pnl} @ {record.exit_time}"
                         )
                     except Exception as e:
                         logger.warning(f"Failed to parse PnL record: {e}, data={item}")
