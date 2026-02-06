@@ -78,6 +78,20 @@ class StrategyParams(BaseModel):
         default=0,
         description="Gap between windows in ms (0 = same as ob_window_ms)"
     )
+    # SL protection
+    sl_cooldown_minutes: int = Field(
+        default=5,
+        description="Per-symbol cooldown after SL in minutes (no signals on that symbol)"
+    )
+    sl_direction_block_minutes: int = Field(
+        default=20,
+        description="Block same-direction re-entry after SL in minutes"
+    )
+    # Trend filter
+    trend_candles: int = Field(
+        default=3,
+        description="Number of consecutive 15m candles required for trend confirmation"
+    )
     # Performance optimization
     fast_orderbook_mode: bool = Field(
         default=True,

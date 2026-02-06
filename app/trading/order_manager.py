@@ -19,6 +19,7 @@ from app.core.events import (
     OrderType,
     OrderUpdateEvent,
     Side,
+    TradeClosedEvent,
 )
 from app.trading.portfolio import Portfolio
 from app.trading.risk_manager import RiskManager
@@ -361,6 +362,19 @@ class OrderManager:
             if trade:
                 if trade.exit_reason == "sl":
                     self._risk_manager.record_sl()
+
+                # Notify strategy about trade close
+                await self._event_bus.publish_immediate(
+                    TradeClosedEvent(
+                        timestamp=trade.exit_time,
+                        symbol=trade.symbol,
+                        side=trade.side,
+                        exit_reason=trade.exit_reason,
+                        entry_price=trade.entry_price,
+                        exit_price=trade.exit_price,
+                        net_pnl=trade.net_pnl,
+                    )
+                )
 
                 # Send telegram notification
                 if self._telegram:

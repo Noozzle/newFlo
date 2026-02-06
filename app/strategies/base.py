@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.config import Config
     from app.core.event_bus import EventBus
-    from app.core.events import KlineEvent, MarketTradeEvent, OrderBookEvent
+    from app.core.events import KlineEvent, MarketTradeEvent, OrderBookEvent, TradeClosedEvent
     from app.trading.portfolio import Portfolio
 
 
@@ -89,6 +89,18 @@ class BaseStrategy(ABC):
 
         Args:
             event: Orderbook event with bid/ask prices and sizes
+        """
+        pass
+
+    async def on_trade_closed(self, event: "TradeClosedEvent") -> None:
+        """
+        Handle trade closed notification.
+
+        Called when a position is closed (SL, TP, signal, time_exit).
+        Override in subclass to track SL exits for cooldown logic.
+
+        Args:
+            event: Trade closed event with exit_reason and side
         """
         pass
 

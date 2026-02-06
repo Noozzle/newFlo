@@ -180,6 +180,16 @@ class SignalEvent(BaseEvent):
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass(kw_only=True)
+class TradeClosedEvent(BaseEvent):
+    """Notification that a trade was closed."""
+    side: Side
+    exit_reason: str  # "sl", "tp", "time_exit", "signal"
+    entry_price: Decimal
+    exit_price: Decimal
+    net_pnl: Decimal
+
+
 # Type alias for all events
 Event = (
     KlineEvent
@@ -191,4 +201,5 @@ Event = (
     | BalanceEvent
     | PositionEvent
     | SignalEvent
+    | TradeClosedEvent
 )

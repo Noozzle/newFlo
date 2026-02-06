@@ -3,7 +3,8 @@
     "allow": [
       "Bash(dir:*)",
       "Bash(python merge_csv.py:*)",
-      "Bash(python -m pytest:*)"
+      "Bash(python -m pytest:*)",
+      "Bash(python:*)"
     ]
   }
 }

@@ -5,8 +5,8 @@ symbols:
   - SUIUSDT
   - DOGEUSDT
   - XRPUSDT
-  record:
   - ETHUSDT
+  record: []
 data:
   base_dir: live_data
   format: csv
@@ -25,7 +25,7 @@ strategy:
     lookback_trades: 100
     cooldown_seconds: 60
     fast_orderbook_mode: true  # Use float parsing for orderbook (faster, epsilon precision trade-off)
-    orderbook_bucket_ms: 50  # Downsample orderbook to 50ms intervals (0 = disabled, keeps all events)
+    orderbook_bucket_ms: 1000 # Downsample orderbook to 50ms intervals (0 = disabled, keeps all events)
 risk:
   max_position_pct: '2.0'
   max_daily_sl_count: 3
@@ -53,7 +53,7 @@ bybit:
   api_key: 6TetnJMPCP60aLwf9F
   api_secret: KdF0KakMUPn46bABwdADvv24eKKOUMITOBWr
 backtest:
-  start_date: '2026-01-19'
-  end_date: '2026-01-29'
+  start_date: '2026-02-03'
+  end_date: '2026-02-06'
   initial_capital: '50'
   symbols: null

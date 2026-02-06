@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from loguru import logger
 
-from app.core.events import Interval, KlineEvent, MarketTradeEvent, OrderBookEvent, Side
+from app.core.events import Interval, KlineEvent, MarketTradeEvent, OrderBookEvent, Side, TradeClosedEvent
 from app.strategies.base import BaseStrategy
 
 if TYPE_CHECKING:
@@ -71,6 +71,10 @@ class SymbolState:
     trend: str = "neutral"  # "bullish", "bearish", "neutral"
     last_signal_time: datetime | None = None
 
+    # SL tracking
+    last_sl_time: datetime | None = None
+    last_sl_side: str | None = None  # "buy" or "sell"
+
     def reset_trade_flow(self) -> None:
         """Reset trade flow for new period."""
         self.buy_volume = Decimal("0")
@@ -114,6 +118,11 @@ class OrderflowStrategy(BaseStrategy):
         self._use_time_based_delta = True
         self._ob_window_ms = 500
         self._ob_compare_gap_ms = 0  # 0 means same as ob_window_ms
+        # SL protection
+        self._sl_cooldown_seconds = 300  # 5 min
+        self._sl_direction_block_seconds = 1200  # 20 min
+        # Trend filter
+        self._trend_candles = 3
 
     async def _on_initialize(self) -> None:
         """Initialize strategy with config parameters."""
@@ -134,13 +143,21 @@ class OrderflowStrategy(BaseStrategy):
         self._use_time_based_delta = params.use_time_based_delta
         self._ob_window_ms = params.ob_window_ms
         self._ob_compare_gap_ms = params.ob_compare_gap_ms if params.ob_compare_gap_ms > 0 else params.ob_window_ms
+        # SL protection params
+        self._sl_cooldown_seconds = params.sl_cooldown_minutes * 60
+        self._sl_direction_block_seconds = params.sl_direction_block_minutes * 60
+        # Trend filter
+        self._trend_candles = params.trend_candles
 
         logger.info(
             f"OrderflowStrategy initialized: imbalance_th={self._imbalance_threshold}, "
             f"delta_th={self._delta_threshold}, RR={self._rr_ratio}, "
             f"kline_vol_fallback={self._use_kline_volume_when_no_trades}, "
             f"time_delta={'on' if self._use_time_based_delta else 'off'} "
-            f"(window={self._ob_window_ms}ms, gap={self._ob_compare_gap_ms}ms)"
+            f"(window={self._ob_window_ms}ms, gap={self._ob_compare_gap_ms}ms), "
+            f"sl_cooldown={params.sl_cooldown_minutes}min, "
+            f"sl_dir_block={params.sl_direction_block_minutes}min, "
+            f"trend_candles={self._trend_candles}"
         )
 
     def _get_state(self, symbol: str) -> SymbolState:
@@ -257,6 +274,18 @@ class OrderflowStrategy(BaseStrategy):
         # Check for signal
         await self._check_signal(event.symbol, event)
 
+    async def on_trade_closed(self, event: TradeClosedEvent) -> None:
+        """Track SL exits for per-symbol cooldown and direction blocking."""
+        if event.exit_reason == "sl":
+            state = self._get_state(event.symbol)
+            state.last_sl_time = event.timestamp
+            state.last_sl_side = event.side.value  # "buy" or "sell"
+            logger.info(
+                f"SL recorded for {event.symbol} {event.side.value}, "
+                f"cooldown {self._sl_cooldown_seconds}s, "
+                f"dir block {self._sl_direction_block_seconds}s"
+            )
+
     async def _check_signal(self, symbol: str, event: OrderBookEvent) -> None:
         """Check if conditions are met for a signal."""
         state = self._get_state(symbol)
@@ -273,8 +302,14 @@ class OrderflowStrategy(BaseStrategy):
             if elapsed < self._cooldown_seconds:
                 return
 
+        # Per-symbol SL cooldown: no signals at all for sl_cooldown_seconds after SL
+        if state.last_sl_time:
+            sl_elapsed = (event.timestamp - state.last_sl_time).total_seconds()
+            if sl_elapsed < self._sl_cooldown_seconds:
+                return
+
         # Need sufficient data
-        if len(state.klines_1m) < 5 or len(state.klines_15m) < 3:
+        if len(state.klines_1m) < 5 or len(state.klines_15m) < self._trend_candles:
             return
 
         if state.atr <= 0:
@@ -323,6 +358,12 @@ class OrderflowStrategy(BaseStrategy):
                 signal_side = "sell"
 
         if signal_side:
+            # Direction block: after SL, block same direction for longer period
+            if (state.last_sl_time and state.last_sl_side == signal_side):
+                sl_elapsed = (event.timestamp - state.last_sl_time).total_seconds()
+                if sl_elapsed < self._sl_direction_block_seconds:
+                    return
+
             await self._emit_entry(symbol, signal_side, state, event)
             state.last_signal_time = event.timestamp
 
@@ -418,17 +459,31 @@ class OrderflowStrategy(BaseStrategy):
             state.atr = sum(state.atr_values) / len(state.atr_values)
 
     def _update_trend(self, state: SymbolState) -> None:
-        """Update trend from 15m klines."""
-        if len(state.klines_15m) < 3:
+        """Update trend from 15m klines.
+
+        Requires trend_candles consecutive candles all closing in
+        the same direction (each close > previous close for bullish,
+        each close < previous close for bearish).
+        """
+        n = self._trend_candles
+        if len(state.klines_15m) < n:
             state.trend = "neutral"
             return
 
-        klines = list(state.klines_15m)[-3:]
+        klines = list(state.klines_15m)[-n:]
 
-        # Simple trend: compare closes
-        if klines[-1].close > klines[-2].close > klines[-3].close:
+        # Check if all consecutive closes are increasing (bullish)
+        all_bullish = all(
+            klines[i].close > klines[i - 1].close for i in range(1, n)
+        )
+        # Check if all consecutive closes are decreasing (bearish)
+        all_bearish = all(
+            klines[i].close < klines[i - 1].close for i in range(1, n)
+        )
+
+        if all_bullish:
             state.trend = "bullish"
-        elif klines[-1].close < klines[-2].close < klines[-3].close:
+        elif all_bearish:
             state.trend = "bearish"
         else:
             state.trend = "neutral"

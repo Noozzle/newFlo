@@ -76,7 +76,7 @@ async def test_open_candle_does_not_change_trend():
     """Open candle (is_closed=False) on 15m should NOT update trend."""
     strategy = OrderflowStrategy()
 
-    # Feed closed 15m candles to establish bullish trend
+    # Feed closed 15m candles to establish bullish trend (need 3 for trend_candles default)
     closes = [Decimal("100"), Decimal("110"), Decimal("120")]
     for close in closes:
         event = make_kline(

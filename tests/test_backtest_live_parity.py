@@ -493,7 +493,7 @@ class TestBacktestLiveParity:
 
         state = strategy._get_state(symbol)
 
-        # Send closed 15m candles to establish bullish trend
+        # Send closed 15m candles to establish bullish trend (need trend_candles=3)
         for i in range(3):
             event = KlineEvent(
                 timestamp=base_time + timedelta(minutes=i * 15),

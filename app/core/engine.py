@@ -21,6 +21,7 @@ from app.core.events import (
     MarketTradeEvent,
     OrderBookEvent,
     SignalEvent,
+    TradeClosedEvent,
 )
 from app.trading.order_manager import OrderManager
 from app.trading.portfolio import Portfolio
@@ -115,6 +116,7 @@ class Engine:
         self._event_bus.subscribe(MarketTradeEvent, self._on_trade)
         self._event_bus.subscribe(OrderBookEvent, self._on_orderbook)
         self._event_bus.subscribe(SignalEvent, self._on_signal)
+        self._event_bus.subscribe(TradeClosedEvent, self._on_trade_closed)
 
     async def _on_kline(self, event: KlineEvent) -> None:
         """Handle kline event."""
@@ -182,6 +184,10 @@ class Engine:
                 metadata=event.metadata,
             )
             await self._order_manager.execute_exit(signal)
+
+    async def _on_trade_closed(self, event: TradeClosedEvent) -> None:
+        """Forward trade closed event to strategy."""
+        await self._strategy.on_trade_closed(event)
 
     async def run_backtest(self) -> None:
         """
