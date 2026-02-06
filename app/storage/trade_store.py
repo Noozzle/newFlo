@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -233,6 +233,31 @@ class TradeStore:
             trades.append(trade)
 
         return trades
+
+    async def get_daily_sl_count(self, target_date: date) -> int:
+        """
+        Count stop-loss exits for a specific day (by exit_time).
+
+        Args:
+            target_date: The date to query
+
+        Returns:
+            Number of SL exits today
+        """
+        if not self._db:
+            return 0
+
+        date_start = target_date.isoformat()
+        date_end = (target_date + timedelta(days=1)).isoformat()
+
+        query = (
+            "SELECT COUNT(*) FROM trades "
+            "WHERE exit_time >= ? AND exit_time < ? AND exit_reason = 'sl'"
+        )
+        async with self._db.execute(query, (date_start, date_end)) as cursor:
+            row = await cursor.fetchone()
+
+        return row[0] if row else 0
 
     async def _append_trade_csv(self, trade: Trade) -> None:
         """Append trade to daily CSV file."""

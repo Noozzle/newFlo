@@ -38,6 +38,7 @@ class EventBus:
         self._queue: list[PrioritizedEvent] = []
         self._handlers: dict[type, list[EventHandler]] = defaultdict(list)
         self._global_handlers: list[EventHandler] = []
+        self._handler_cache: dict[type, list[EventHandler]] = {}
         self._sequence = 0
         self._running = False
         self._lock = asyncio.Lock()
@@ -60,6 +61,7 @@ class EventBus:
         else:
             self._handlers[event_type].append(handler)
             logger.debug(f"Registered handler for {event_type.__name__}: {handler.__name__}")
+        self._handler_cache.clear()
 
     def unsubscribe(
         self,
@@ -73,6 +75,7 @@ class EventBus:
         else:
             if handler in self._handlers[event_type]:
                 self._handlers[event_type].remove(handler)
+        self._handler_cache.clear()
 
     async def publish(self, event: BaseEvent) -> None:
         """
@@ -101,7 +104,10 @@ class EventBus:
     async def _dispatch(self, event: BaseEvent) -> None:
         """Dispatch event to all registered handlers."""
         event_type = type(event)
-        handlers = self._handlers.get(event_type, []) + self._global_handlers
+        handlers = self._handler_cache.get(event_type)
+        if handlers is None:
+            handlers = self._handlers.get(event_type, []) + self._global_handlers
+            self._handler_cache[event_type] = handlers
 
         for handler in handlers:
             try:

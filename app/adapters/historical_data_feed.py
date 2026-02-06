@@ -126,33 +126,49 @@ class CSVSchemaDetector:
         """Detect column mappings from DataFrame (legacy compatibility)."""
         return cls.detect_schema_from_headers(list(df.columns))
 
+    _TS_FORMATS = [
+        "%Y-%m-%d %H:%M:%S.%f",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%dT%H:%M:%S.%fZ",
+        "%Y-%m-%dT%H:%M:%S.%f",
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%d",
+    ]
+
     @classmethod
     def parse_timestamp(cls, value: str | int | float) -> datetime:
-        """Parse timestamp from various formats."""
+        """Parse timestamp from various formats (slow path, tries all formats)."""
         if isinstance(value, (int, float)):
-            # Unix timestamp (seconds or milliseconds)
-            if value > 1e12:  # Milliseconds
+            if value > 1e12:
                 return datetime.utcfromtimestamp(value / 1000)
             return datetime.utcfromtimestamp(value)
 
-        # String timestamp
         value = str(value)
-        formats = [
-            "%Y-%m-%d %H:%M:%S.%f",
-            "%Y-%m-%d %H:%M:%S",
-            "%Y-%m-%dT%H:%M:%S.%fZ",
-            "%Y-%m-%dT%H:%M:%S.%f",
-            "%Y-%m-%dT%H:%M:%SZ",
-            "%Y-%m-%dT%H:%M:%S",
-            "%Y-%m-%d",
-        ]
-        for fmt in formats:
+        for fmt in cls._TS_FORMATS:
             try:
                 return datetime.strptime(value, fmt)
             except ValueError:
                 continue
 
         raise ValueError(f"Cannot parse timestamp: {value}")
+
+    @classmethod
+    def detect_ts_format(cls, value: str) -> str | None:
+        """Detect timestamp format from a sample value (called once per file)."""
+        value = str(value)
+        for fmt in cls._TS_FORMATS:
+            try:
+                datetime.strptime(value, fmt)
+                return fmt
+            except ValueError:
+                continue
+        return None
+
+    @classmethod
+    def parse_timestamp_fast(cls, value: str, fmt: str) -> datetime:
+        """Parse timestamp with known format (fast path, no trial-and-error)."""
+        return datetime.strptime(value, fmt)
 
 
 @dataclass
@@ -173,6 +189,8 @@ class ChannelIterator:
     # For orderbook downsampling (LOCF - Last Observation Carried Forward)
     current_bucket_id: int | None = None
     bucket_pending_event: BaseEvent | None = None
+    # Cached timestamp format (detected on first row)
+    ts_format: str | None = None
 
     def close(self):
         """Close file handle."""
@@ -226,6 +244,11 @@ class StreamingHistoricalDataFeed(DataFeed):
         # Stats
         self._total_events_yielded = 0
 
+        # Cache config lookups for hot path
+        params = getattr(getattr(config, 'strategy', None), 'params', None)
+        self._fast_orderbook_mode = getattr(params, 'fast_orderbook_mode', False) if params else False
+        self._orderbook_bucket_ms = getattr(params, 'orderbook_bucket_ms', 0) if params else 0
+
     async def start(self) -> None:
         """Start the data feed."""
         self._running = True
@@ -261,7 +284,7 @@ class StreamingHistoricalDataFeed(DataFeed):
 
         # Default channels
         if channels is None:
-            channels = ["kline_1m", "kline_15m", "orderbook"]
+            channels = ["kline_1m", "kline_15m", "trades", "orderbook"]
 
         for channel in channels:
             await self._open_channel_stream(symbol, channel)
@@ -396,6 +419,24 @@ class StreamingHistoricalDataFeed(DataFeed):
             try:
                 row = next(channel_iter.csv_reader)
                 channel_iter.rows_read += 1
+
+                # Detect mid-file schema change (e.g., orderbook 6→10 columns)
+                if None in row:
+                    extra_values = row.pop(None)
+                    all_values = [row[fn] for fn in channel_iter.csv_reader.fieldnames] + extra_values
+                    if channel_iter.channel == "orderbook" and len(all_values) == 10:
+                        new_fieldnames = [
+                            "timestamp", "system_ts", "local_ts", "update_id", "seq",
+                            "bid_price", "bid_size", "ask_price", "ask_size", "mid_price",
+                        ]
+                        row = dict(zip(new_fieldnames, all_values))
+                        channel_iter.csv_reader.fieldnames = new_fieldnames
+                        channel_iter.schema = CSVSchemaDetector.detect_schema_from_headers(new_fieldnames)
+                        logger.info(
+                            f"Detected schema change in {channel_iter.channel_id}, "
+                            f"switched to {len(new_fieldnames)}-column format"
+                        )
+
             except StopIteration:
                 # Channel exhausted - yield pending event if exists (for downsampling)
                 if channel_iter.bucket_pending_event:
@@ -410,8 +451,13 @@ class StreamingHistoricalDataFeed(DataFeed):
                     return False
 
             try:
-                # Parse timestamp
-                timestamp = CSVSchemaDetector.parse_timestamp(row[ts_col])
+                # Parse timestamp (use cached format after first row)
+                ts_raw = row[ts_col]
+                if channel_iter.ts_format:
+                    timestamp = CSVSchemaDetector.parse_timestamp_fast(ts_raw, channel_iter.ts_format)
+                else:
+                    timestamp = CSVSchemaDetector.parse_timestamp(ts_raw)
+                    channel_iter.ts_format = CSVSchemaDetector.detect_ts_format(ts_raw)
 
                 # Filter by date range
                 if self._start_date and timestamp < self._start_date:
@@ -439,10 +485,7 @@ class StreamingHistoricalDataFeed(DataFeed):
                         channel_iter.last_bid_ask = current_bid_ask
 
                 # Downsample orderbook (LOCF - Last Observation Carried Forward)
-                bucket_ms = 0
-                if is_orderbook and isinstance(event, OrderBookEvent):
-                    if hasattr(self._config, 'strategy') and hasattr(self._config.strategy, 'params'):
-                        bucket_ms = getattr(self._config.strategy.params, 'orderbook_bucket_ms', 0)
+                bucket_ms = self._orderbook_bucket_ms if is_orderbook and isinstance(event, OrderBookEvent) else 0
 
                 if bucket_ms > 0 and is_orderbook:
                     # Calculate bucket ID from timestamp
@@ -481,7 +524,11 @@ class StreamingHistoricalDataFeed(DataFeed):
                 return True
 
             except Exception as e:
-                logger.trace(f"Error parsing row in {channel_id}: {e}")
+                channel_iter.parse_errors = getattr(channel_iter, "parse_errors", 0) + 1
+                if channel_iter.parse_errors <= 3:
+                    logger.warning(f"Error parsing row {channel_iter.rows_read} in {channel_id}: {e}")
+                elif channel_iter.parse_errors == 4:
+                    logger.warning(f"Suppressing further parse errors for {channel_id}...")
                 continue
 
     def _row_to_event(
@@ -495,12 +542,7 @@ class StreamingHistoricalDataFeed(DataFeed):
         """Convert a row dict to an event based on channel type."""
         data_type = schema.get("_type", "unknown")
 
-        # Determine if we should use fast mode for orderbook parsing
-        fast_mode = (
-            hasattr(self._config, 'strategy') and
-            hasattr(self._config.strategy, 'params') and
-            getattr(self._config.strategy.params, 'fast_orderbook_mode', False)
-        )
+        fast_mode = self._fast_orderbook_mode
 
         def get_val(key: str, default: str = "0") -> str:
             actual_col = schema.get(key, key)
@@ -538,12 +580,9 @@ class StreamingHistoricalDataFeed(DataFeed):
             )
 
         elif channel == "orderbook" or data_type == "orderbook":
-            # Parse optional extended fields
+            # Parse only fields needed for trading (skip system_ts, local_ts for speed)
             update_id = None
             seq = None
-            exchange_ts = None
-            system_ts = None
-            local_ts = None
 
             val = get_val_or_none("update_id")
             if val:
@@ -559,32 +598,8 @@ class StreamingHistoricalDataFeed(DataFeed):
                 except (ValueError, TypeError):
                     pass
 
-            val = get_val_or_none("exchange_ts")
-            if val:
-                try:
-                    exchange_ts = CSVSchemaDetector.parse_timestamp(val)
-                except (ValueError, TypeError):
-                    pass
-
-            val = get_val_or_none("system_ts")
-            if val:
-                try:
-                    system_ts = CSVSchemaDetector.parse_timestamp(val)
-                except (ValueError, TypeError):
-                    pass
-
-            val = get_val_or_none("local_ts")
-            if val:
-                try:
-                    local_ts = CSVSchemaDetector.parse_timestamp(val)
-                except (ValueError, TypeError):
-                    pass
-
-            # Use exchange_ts (cts) as primary timestamp if available
-            effective_timestamp = exchange_ts if exchange_ts else timestamp
-
             return OrderBookEvent(
-                timestamp=effective_timestamp,
+                timestamp=timestamp,
                 symbol=symbol,
                 bid_price=parse_price(get_val("bid_price")),
                 bid_size=parse_price(get_val("bid_size")),
@@ -592,9 +607,6 @@ class StreamingHistoricalDataFeed(DataFeed):
                 ask_size=parse_price(get_val("ask_size")),
                 update_id=update_id,
                 seq=seq,
-                exchange_ts=exchange_ts,
-                system_ts=system_ts,
-                local_ts=local_ts,
             )
 
         elif channel == "trades" or data_type == "trade":

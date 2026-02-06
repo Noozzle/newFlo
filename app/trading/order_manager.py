@@ -359,7 +359,8 @@ class OrderManager:
             )
 
             if trade:
-                self._risk_manager.update_daily_loss(trade.net_pnl)
+                if trade.exit_reason == "sl":
+                    self._risk_manager.record_sl()
 
                 # Send telegram notification
                 if self._telegram:
@@ -421,6 +422,13 @@ class OrderManager:
                     )
                 except ValueError as e:
                     logger.warning(f"Could not restore position {pos.symbol}: {e}")
+
+        # Reconstruct daily SL count from today's closed trades
+        if self._trade_store:
+            from datetime import timezone
+            today = datetime.now(timezone.utc).date()
+            sl_count = await self._trade_store.get_daily_sl_count(today)
+            self._risk_manager.reconstruct_daily_sl_count(sl_count, today)
 
         # Get open orders
         orders = await self._exchange.get_open_orders()

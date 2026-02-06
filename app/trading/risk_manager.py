@@ -54,7 +54,7 @@ class RiskManager:
         self._config = config
         self._costs = costs
         self._portfolio = portfolio
-        self._daily_loss = Decimal("0")
+        self._daily_sl_count = 0
         self._current_day: date | None = None
 
     def calculate_position_size(
@@ -101,18 +101,14 @@ class RiskManager:
                 reason=f"Already have position in {signal.symbol}",
             )
 
-        # Check daily loss limit (only check when we have actual losses, not profits)
-        if self._daily_loss < 0:
-            balance = self._portfolio.balance
-            if balance > 0:
-                daily_loss_pct = abs(self._daily_loss) / balance * 100
-                if daily_loss_pct >= self._config.max_daily_loss_pct:
-                    return SizeResult(
-                        approved=False,
-                        size=Decimal("0"),
-                        risk_amount=Decimal("0"),
-                        reason=f"Daily loss limit ({self._config.max_daily_loss_pct}%) reached",
-                    )
+        # Check daily SL count limit
+        if self._daily_sl_count >= self._config.max_daily_sl_count:
+            return SizeResult(
+                approved=False,
+                size=Decimal("0"),
+                risk_amount=Decimal("0"),
+                reason=f"Daily SL limit ({self._config.max_daily_sl_count}) reached ({self._daily_sl_count} SLs today)",
+            )
 
         # Check drawdown limit
         if self._portfolio.drawdown >= self._config.max_drawdown_pct:
@@ -209,24 +205,13 @@ class RiskManager:
         if self._portfolio.has_position(signal.symbol):
             return False, "Already have position"
 
-        # Check daily loss (only when we have actual losses)
-        if self._daily_loss < 0:
-            balance = self._portfolio.balance
-            if balance <= 0:
-                logger.warning(f"Cannot check daily loss: balance={balance}")
-                return False, "Invalid balance"
-            daily_loss_pct = abs(self._daily_loss) / balance * 100
-            logger.debug(
-                f"Daily loss check: loss={self._daily_loss}, balance={balance}, "
-                f"loss_pct={daily_loss_pct:.2f}%, limit={self._config.max_daily_loss_pct}%, "
-                f"current_day={self._current_day}"
+        # Check daily SL count
+        if self._daily_sl_count >= self._config.max_daily_sl_count:
+            logger.warning(
+                f"Daily SL limit reached: {self._daily_sl_count} >= {self._config.max_daily_sl_count} "
+                f"(day={self._current_day})"
             )
-            if daily_loss_pct >= self._config.max_daily_loss_pct:
-                logger.warning(
-                    f"Daily loss limit reached: {daily_loss_pct:.2f}% >= {self._config.max_daily_loss_pct}% "
-                    f"(loss={self._daily_loss}, balance={balance}, day={self._current_day})"
-                )
-                return False, "Daily loss limit reached"
+            return False, f"Daily SL limit ({self._config.max_daily_sl_count}) reached"
 
         # Check drawdown
         if self._portfolio.drawdown >= self._config.max_drawdown_pct:
@@ -234,18 +219,32 @@ class RiskManager:
 
         return True, "OK"
 
-    def update_daily_loss(self, pnl: Decimal) -> None:
-        """Update daily loss tracking."""
-        old_loss = self._daily_loss
-        self._daily_loss += pnl
+    def record_sl(self) -> None:
+        """Record a stop-loss exit for daily SL counting."""
+        self._daily_sl_count += 1
         logger.info(
-            f"Daily PnL updated: {pnl:+.4f} (total: {old_loss:.4f} -> {self._daily_loss:.4f}, "
-            f"day={self._current_day})"
+            f"Daily SL count: {self._daily_sl_count}/{self._config.max_daily_sl_count} "
+            f"(day={self._current_day})"
         )
 
     def reset_daily(self) -> None:
         """Reset daily tracking (call at start of new day)."""
-        self._daily_loss = Decimal("0")
+        self._daily_sl_count = 0
+
+    def reconstruct_daily_sl_count(self, sl_count: int, current_date: date) -> None:
+        """
+        Reconstruct daily SL count from persisted trade data (called after process restart).
+
+        Args:
+            sl_count: Number of SL exits today
+            current_date: Today's date
+        """
+        self._current_day = current_date
+        self._daily_sl_count = sl_count
+        logger.info(
+            f"Reconstructed daily SL count for {current_date}: "
+            f"{sl_count}/{self._config.max_daily_sl_count}"
+        )
 
     def check_new_day(self, event_time: datetime | None = None, use_realtime: bool = False) -> None:
         """
@@ -270,15 +269,15 @@ class RiskManager:
 
         if self._current_day is None:
             logger.info(
-                f"Initializing trading day: {current_date}, daily_loss={self._daily_loss}"
+                f"Initializing trading day: {current_date}, daily_sl_count={self._daily_sl_count}"
             )
             self._current_day = current_date
         elif current_date > self._current_day:
             logger.info(
                 f"New trading day: {current_date} (was: {self._current_day}), "
-                f"resetting daily loss (was: {self._daily_loss})"
+                f"resetting daily SL count (was: {self._daily_sl_count})"
             )
-            self._daily_loss = Decimal("0")
+            self._daily_sl_count = 0
             self._current_day = current_date
 
     def should_close_for_time(
@@ -346,12 +345,8 @@ class RiskManager:
         if self._portfolio.num_open_positions >= self._config.max_concurrent_trades:
             return False
 
-        if self._daily_loss < 0:
-            balance = self._portfolio.balance
-            if balance > 0:
-                daily_loss_pct = abs(self._daily_loss) / balance * 100
-                if daily_loss_pct >= self._config.max_daily_loss_pct:
-                    return False
+        if self._daily_sl_count >= self._config.max_daily_sl_count:
+            return False
 
         if self._portfolio.drawdown >= self._config.max_drawdown_pct:
             return False

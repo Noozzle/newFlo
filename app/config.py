@@ -98,7 +98,7 @@ class StrategyConfig(BaseModel):
 class RiskConfig(BaseModel):
     """Risk management configuration."""
     max_position_pct: Decimal = Field(default=Decimal("2.0"), description="Max position size % of equity")
-    max_daily_loss_pct: Decimal = Field(default=Decimal("5.0"), description="Max daily loss %")
+    max_daily_sl_count: int = Field(default=3, description="Max stop-loss exits per day before trading stops")
     max_concurrent_trades: int = Field(default=3, description="Max concurrent open trades")
     max_drawdown_pct: Decimal = Field(default=Decimal("15.0"), description="Max drawdown %")
     use_trailing_stop: bool = Field(default=False, description="Use trailing stop")

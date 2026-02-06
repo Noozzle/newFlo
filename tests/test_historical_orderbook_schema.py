@@ -174,9 +174,10 @@ class TestHistoricalDataFeedOrderbook:
             assert isinstance(event, OrderBookEvent)
             assert event.update_id == 100
             assert event.seq == 12345
-            assert event.exchange_ts is not None
-            assert event.system_ts is not None
-            assert event.local_ts is not None
+            # exchange_ts/system_ts/local_ts skipped in backtest for performance
+            assert event.exchange_ts is None
+            assert event.system_ts is None
+            assert event.local_ts is None
 
             await feed.stop()
 
@@ -201,9 +202,9 @@ class TestHistoricalDataFeedOrderbook:
 
             assert len(events) == 1
             event = events[0]
-            # Should use exchange_ts, not original timestamp
-            assert event.timestamp.second == 1  # From exchange_ts
-            assert event.exchange_ts.second == 1
+            # Uses original timestamp (exchange_ts parsing skipped for performance)
+            assert event.timestamp.second == 0
+            assert event.exchange_ts is None
 
             await feed.stop()
 

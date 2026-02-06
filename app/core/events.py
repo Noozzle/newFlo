@@ -7,9 +7,6 @@ from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from typing import Any
-from uuid import uuid4
-
-
 class Side(str, Enum):
     """Order/Trade side."""
     BUY = "buy"
@@ -51,7 +48,7 @@ class BaseEvent:
     """Base event class."""
     timestamp: datetime
     symbol: str
-    event_id: str = field(default_factory=lambda: str(uuid4()))
+    event_id: str = field(default="")
 
     def __lt__(self, other: BaseEvent) -> bool:
         """Compare by timestamp for priority queue."""

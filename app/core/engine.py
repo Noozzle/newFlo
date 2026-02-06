@@ -155,6 +155,10 @@ class Engine:
 
     async def _on_signal(self, event: SignalEvent) -> None:
         """Handle trading signal from strategy."""
+        # Only trade symbols from the trade list, not record-only symbols
+        if event.symbol not in self._config.symbols.trade:
+            return
+
         if event.signal_type == "entry":
             signal = EntrySignal(
                 timestamp=event.timestamp,
@@ -194,8 +198,10 @@ class Engine:
         await self._data_feed.start()
         await self._exchange.start()
 
-        # Subscribe to symbols
-        symbols = self._config.backtest.symbols or self._config.symbols.trade
+        # Subscribe to symbols (match live: trade + record)
+        symbols = self._config.backtest.symbols or list(
+            set(self._config.symbols.trade + self._config.symbols.record)
+        )
         for symbol in symbols:
             await self._data_feed.subscribe(symbol)
 
