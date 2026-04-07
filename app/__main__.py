@@ -228,6 +228,7 @@ async def _run_backtest(config: Config) -> None:
         config=config,
         start_date=start_date,
         end_date=end_date,
+        warmup_minutes=60,
     )
 
     exchange = SimulatedExchangeAdapter(

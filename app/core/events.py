@@ -59,19 +59,19 @@ class BaseEvent:
 class KlineEvent(BaseEvent):
     """Kline/candlestick event."""
     interval: Interval
-    open: Decimal
-    high: Decimal
-    low: Decimal
-    close: Decimal
-    volume: Decimal
+    open: Decimal | float
+    high: Decimal | float
+    low: Decimal | float
+    close: Decimal | float
+    volume: Decimal | float
     is_closed: bool = True
 
 
 @dataclass(kw_only=True)
 class MarketTradeEvent(BaseEvent):
     """Market trade (tick) event."""
-    price: Decimal
-    amount: Decimal
+    price: Decimal | float
+    amount: Decimal | float
     side: Side
     trade_id: str = ""
 

@@ -4,14 +4,20 @@ from __future__ import annotations
 
 import csv
 import heapq
+from calendar import timegm
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from typing import Iterator, TextIO
+from typing import TYPE_CHECKING, Iterator, TextIO
 
-import pandas as pd
+import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
 from loguru import logger
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 from app.adapters.data_feed import DataFeed
 from app.config import Config, DataFormat
@@ -191,6 +197,9 @@ class ChannelIterator:
     bucket_pending_event: BaseEvent | None = None
     # Cached timestamp format (detected on first row)
     ts_format: str | None = None
+    # Parquet streaming
+    is_parquet: bool = False
+    parquet_event_iter: Iterator | None = None
 
     def close(self):
         """Close file handle."""
@@ -218,6 +227,7 @@ class StreamingHistoricalDataFeed(DataFeed):
         start_date: datetime | None = None,
         end_date: datetime | None = None,
         dedupe_orderbook: bool = True,
+        warmup_minutes: int = 0,
     ) -> None:
         """
         Initialize streaming historical data feed.
@@ -228,10 +238,17 @@ class StreamingHistoricalDataFeed(DataFeed):
             start_date: Filter data from this date
             end_date: Filter data until this date
             dedupe_orderbook: Skip consecutive orderbook rows with same update_id or bid/ask
+            warmup_minutes: Minutes of data to load before start_date for indicator warm-up
         """
         super().__init__(event_bus)
         self._config = config
-        self._start_date = start_date
+        # Store the real trading start date before adjusting for warm-up
+        self._trade_start_date = start_date
+        # Shift start_date back by warmup_minutes for indicator warm-up (ATR, etc.)
+        if start_date and warmup_minutes > 0:
+            self._start_date = start_date - timedelta(minutes=warmup_minutes)
+        else:
+            self._start_date = start_date
         self._end_date = end_date
         self._dedupe_orderbook = dedupe_orderbook
         self._data_dir = Path(config.data.base_dir)
@@ -330,12 +347,11 @@ class StreamingHistoricalDataFeed(DataFeed):
             logger.debug(f"File not found: {file_path}")
             return
 
-        # For parquet files, fall back to pandas (streaming not supported)
+        # Prefer parquet when format=parquet and file exists
         if self._config.data.format == DataFormat.PARQUET:
             parquet_path = file_path.with_suffix(".parquet")
             if parquet_path.exists():
-                logger.warning(f"Parquet streaming not supported, loading {parquet_path} into memory")
-                await self._load_parquet_channel(symbol, channel, parquet_path)
+                self._open_parquet_channel_stream(symbol, channel, parquet_path)
                 return
 
         try:
@@ -371,32 +387,252 @@ class StreamingHistoricalDataFeed(DataFeed):
         except Exception as e:
             logger.error(f"Error opening {file_path}: {e}")
 
-    async def _load_parquet_channel(self, symbol: str, channel: str, file_path: Path) -> None:
-        """Load parquet file (fallback - loads into memory)."""
-        try:
-            df = pd.read_parquet(file_path)
-            schema = CSVSchemaDetector.detect_schema(df)
+    # ------------------------------------------------------------------
+    # Parquet streaming reader
+    # ------------------------------------------------------------------
 
-            # Create a generator from dataframe rows
-            def row_generator():
-                for _, row in df.iterrows():
-                    yield dict(row)
+    def _open_parquet_channel_stream(
+        self, symbol: str, channel: str, file_path: Path
+    ) -> None:
+        """Open a streaming Parquet channel (row-group-at-a-time)."""
+        try:
+            pf = pq.ParquetFile(str(file_path))
+
+            # Choose generator based on channel type
+            if channel == "orderbook":
+                gen = self._pq_orderbook_iter(pf, symbol)
+            elif channel == "trades":
+                gen = self._pq_trades_iter(pf, symbol)
+            elif channel.startswith("kline_"):
+                interval_str = channel.replace("kline_", "")
+                gen = self._pq_kline_iter(pf, symbol, interval_str)
+            else:
+                logger.warning(f"Unknown parquet channel: {channel}")
+                return
 
             channel_id = f"{symbol}_{channel}"
             channel_iter = ChannelIterator(
                 channel_id=channel_id,
                 symbol=symbol,
                 channel=channel,
-                file_handle=None,  # No file handle for parquet
-                csv_reader=row_generator(),
-                schema=schema,
+                file_handle=None,
+                csv_reader=None,
+                schema={},
+                is_parquet=True,
+                parquet_event_iter=gen,
             )
-
             self._channel_iterators[channel_id] = channel_iter
             self._advance_channel(channel_id)
+            logger.debug(f"Opened parquet channel: {channel_id} ({file_path})")
 
         except Exception as e:
-            logger.error(f"Error loading parquet {file_path}: {e}")
+            logger.error(f"Error opening parquet {file_path}: {e}")
+
+    def _pq_date_bounds_ms(self) -> tuple[int | None, int | None]:
+        """Pre-compute start/end date as int64 ms for fast filtering."""
+        start_ms = None
+        end_ms = None
+        if self._start_date:
+            start_ms = timegm(self._start_date.timetuple()) * 1000
+        if self._end_date:
+            end_ms = timegm(self._end_date.timetuple()) * 1000
+        return start_ms, end_ms
+
+    def _pq_orderbook_iter(
+        self, pf: pq.ParquetFile, symbol: str
+    ) -> Iterator[OrderBookEvent]:
+        """Stream OrderBookEvents with row-group predicate pushdown + vectorized LOCF."""
+        fast = self._fast_orderbook_mode
+        start_ms, end_ms = self._pq_date_bounds_ms()
+        bucket_ms = self._orderbook_bucket_ms
+
+        # Find timestamp column index for row-group statistics
+        ts_col_idx = pf.schema_arrow.get_field_index("timestamp_ms")
+
+        # Cross-batch LOCF state
+        pending_event: OrderBookEvent | None = None
+        pending_bucket: int | None = None
+
+        num_rg = pf.metadata.num_row_groups
+        for rg_idx in range(num_rg):
+            # Row-group predicate pushdown: skip entire row groups outside date range
+            rg_meta = pf.metadata.row_group(rg_idx)
+            ts_stats = rg_meta.column(ts_col_idx).statistics
+            if ts_stats and ts_stats.has_min_max:
+                if start_ms is not None and ts_stats.max < start_ms:
+                    continue
+                if end_ms is not None and ts_stats.min > end_ms:
+                    continue
+
+            table = pf.read_row_group(rg_idx)
+            ts_np = table.column("timestamp_ms").to_numpy()
+            n = len(ts_np)
+            if n == 0:
+                continue
+
+            # Vectorized date filtering
+            mask = np.ones(n, dtype=bool)
+            if start_ms is not None:
+                mask &= ts_np >= start_ms
+            if end_ms is not None:
+                mask &= ts_np <= end_ms
+
+            if not mask.any():
+                continue
+            if not mask.all():
+                table = table.filter(pa.array(mask))
+                ts_np = ts_np[mask]
+                n = len(ts_np)
+
+            # Vectorized LOCF: keep only last event per bucket
+            if bucket_ms > 0 and n > 1:
+                bucket_ids = ts_np // bucket_ms
+                keep = np.empty(n, dtype=bool)
+                keep[:-1] = bucket_ids[:-1] != bucket_ids[1:]
+                keep[-1] = True  # always keep last row of batch
+                indices = np.where(keep)[0]
+            else:
+                indices = np.arange(n)
+                bucket_ids = None
+
+            # Extract columns as Python lists
+            bp = table.column("bid_price").to_pylist()
+            bs = table.column("bid_size").to_pylist()
+            ap = table.column("ask_price").to_pylist()
+            a_s = table.column("ask_size").to_pylist()
+            uid = table.column("update_id").to_pylist()
+            sq = table.column("seq").to_pylist()
+            ts_list = ts_np.tolist()
+
+            for idx_pos in range(len(indices)):
+                i = int(indices[idx_pos])
+                t = ts_list[i]
+                u = uid[i] if uid[i] != -1 else None
+                s = sq[i] if sq[i] != -1 else None
+
+                if fast:
+                    event = OrderBookEvent(
+                        timestamp=datetime.utcfromtimestamp(t / 1000),
+                        symbol=symbol,
+                        bid_price=bp[i], bid_size=bs[i],
+                        ask_price=ap[i], ask_size=a_s[i],
+                        update_id=u, seq=s,
+                    )
+                else:
+                    event = OrderBookEvent(
+                        timestamp=datetime.utcfromtimestamp(t / 1000),
+                        symbol=symbol,
+                        bid_price=Decimal(str(bp[i])), bid_size=Decimal(str(bs[i])),
+                        ask_price=Decimal(str(ap[i])), ask_size=Decimal(str(a_s[i])),
+                        update_id=u, seq=s,
+                    )
+
+                if bucket_ids is not None:
+                    bucket = int(bucket_ids[i])
+                    if pending_event is not None and pending_bucket != bucket:
+                        yield pending_event
+                    pending_event = event
+                    pending_bucket = bucket
+                else:
+                    if pending_event is not None:
+                        yield pending_event
+                        pending_event = None
+                        pending_bucket = None
+                    yield event
+
+        # Yield last pending event
+        if pending_event is not None:
+            yield pending_event
+
+    def _pq_trades_iter(
+        self, pf: pq.ParquetFile, symbol: str
+    ) -> Iterator[MarketTradeEvent]:
+        """Stream MarketTradeEvents with row-group predicate pushdown + float output."""
+        start_ms, end_ms = self._pq_date_bounds_ms()
+        ts_col_idx = pf.schema_arrow.get_field_index("timestamp_ms")
+
+        num_rg = pf.metadata.num_row_groups
+        for rg_idx in range(num_rg):
+            # Row-group predicate pushdown
+            rg_meta = pf.metadata.row_group(rg_idx)
+            ts_stats = rg_meta.column(ts_col_idx).statistics
+            if ts_stats and ts_stats.has_min_max:
+                if start_ms is not None and ts_stats.max < start_ms:
+                    continue
+                if end_ms is not None and ts_stats.min > end_ms:
+                    continue
+
+            table = pf.read_row_group(rg_idx)
+            ts_np = table.column("timestamp_ms").to_numpy()
+            n = len(ts_np)
+            if n == 0:
+                continue
+
+            # Vectorized date filtering
+            mask = np.ones(n, dtype=bool)
+            if start_ms is not None:
+                mask &= ts_np >= start_ms
+            if end_ms is not None:
+                mask &= ts_np <= end_ms
+
+            if not mask.any():
+                continue
+            if not mask.all():
+                table = table.filter(pa.array(mask))
+                ts_np = ts_np[mask]
+                n = len(ts_np)
+
+            # Float output — no Decimal conversion (P1.3)
+            pr = table.column("price").to_pylist()
+            am = table.column("amount").to_pylist()
+            sd = table.column("side").to_pylist()
+            ts_list = ts_np.tolist()
+
+            for i in range(n):
+                yield MarketTradeEvent(
+                    timestamp=datetime.utcfromtimestamp(ts_list[i] / 1000),
+                    symbol=symbol,
+                    price=pr[i],
+                    amount=am[i],
+                    side=Side.BUY if sd[i] == 1 else Side.SELL,
+                )
+
+    def _pq_kline_iter(
+        self, pf: pq.ParquetFile, symbol: str, interval_str: str
+    ) -> Iterator[KlineEvent]:
+        """Stream KlineEvents from a Parquet file."""
+        start_ms, end_ms = self._pq_date_bounds_ms()
+        interval = Interval(interval_str) if interval_str in [iv.value for iv in Interval] else Interval.M1
+
+        for batch in pf.iter_batches():
+            ts = batch.column("timestamp_ms").to_pylist()
+            op = batch.column("open").to_pylist()
+            hi = batch.column("high").to_pylist()
+            lo = batch.column("low").to_pylist()
+            cl = batch.column("close").to_pylist()
+            vo = batch.column("volume").to_pylist()
+
+            for i in range(len(ts)):
+                t = ts[i]
+                if start_ms is not None and t < start_ms:
+                    continue
+                if end_ms is not None and t > end_ms:
+                    continue
+
+                yield KlineEvent(
+                    timestamp=datetime.utcfromtimestamp(t / 1000),
+                    symbol=symbol,
+                    interval=interval,
+                    open=op[i],
+                    high=hi[i],
+                    low=lo[i],
+                    close=cl[i],
+                    volume=vo[i],
+                )
+
+    # ------------------------------------------------------------------
+    # Channel advance (k-way merge)
+    # ------------------------------------------------------------------
 
     def _advance_channel(self, channel_id: str) -> bool:
         """
@@ -405,7 +641,13 @@ class StreamingHistoricalDataFeed(DataFeed):
         Returns True if an event was pushed, False if channel exhausted.
         """
         channel_iter = self._channel_iterators.get(channel_id)
-        if not channel_iter or not channel_iter.csv_reader:
+        if not channel_iter:
+            return False
+
+        if channel_iter.is_parquet:
+            return self._advance_parquet(channel_id, channel_iter)
+
+        if not channel_iter.csv_reader:
             return False
 
         schema = channel_iter.schema
@@ -530,6 +772,69 @@ class StreamingHistoricalDataFeed(DataFeed):
                 elif channel_iter.parse_errors == 4:
                     logger.warning(f"Suppressing further parse errors for {channel_id}...")
                 continue
+
+    def _advance_parquet(self, channel_id: str, ci: ChannelIterator) -> bool:
+        """Advance a parquet-based channel.  Events come pre-constructed."""
+        is_ob = ci.channel == "orderbook"
+
+        while True:
+            try:
+                event = next(ci.parquet_event_iter)
+            except StopIteration:
+                # Flush pending bucket event
+                if ci.bucket_pending_event:
+                    ev = ci.bucket_pending_event
+                    ci.bucket_pending_event = None
+                    ci.current_event = ev
+                    self._sequence += 1
+                    heapq.heappush(self._event_heap, (ev.timestamp, self._sequence, channel_id))
+                    return True
+                ci.current_event = None
+                return False
+
+            ci.rows_read += 1
+
+            # Dedupe orderbook
+            if is_ob and self._dedupe_orderbook and isinstance(event, OrderBookEvent):
+                bid_ask = (event.bid_price, event.bid_size, event.ask_price, event.ask_size)
+                if event.update_id is not None:
+                    if event.update_id == ci.last_update_id:
+                        continue
+                    ci.last_update_id = event.update_id
+                    ci.last_bid_ask = bid_ask
+                else:
+                    if bid_ask == ci.last_bid_ask:
+                        continue
+                    ci.last_bid_ask = bid_ask
+
+            # Downsample orderbook (LOCF)
+            bucket_ms = self._orderbook_bucket_ms if is_ob and isinstance(event, OrderBookEvent) else 0
+            if bucket_ms > 0:
+                timestamp_ms = int(event.timestamp.timestamp() * 1000)
+                bucket_id = timestamp_ms // bucket_ms
+                if ci.current_bucket_id is None:
+                    ci.current_bucket_id = bucket_id
+                    ci.bucket_pending_event = event
+                    continue
+                elif bucket_id == ci.current_bucket_id:
+                    ci.bucket_pending_event = event
+                    continue
+                else:
+                    ev = ci.bucket_pending_event
+                    ci.current_bucket_id = bucket_id
+                    ci.bucket_pending_event = event
+                    if ev:
+                        ci.current_event = ev
+                        self._sequence += 1
+                        heapq.heappush(self._event_heap, (ev.timestamp, self._sequence, channel_id))
+                        return True
+                    continue
+
+            # Valid event
+            ci.current_event = event
+            self._sequence += 1
+            heapq.heappush(self._event_heap, (event.timestamp, self._sequence, channel_id))
+            return True
 
     def _row_to_event(
         self,
@@ -676,6 +981,11 @@ class StreamingHistoricalDataFeed(DataFeed):
     def num_channels(self) -> int:
         """Get number of active channels."""
         return len(self._channel_iterators)
+
+    @property
+    def trade_start_date(self) -> datetime | None:
+        """Get the actual trading start date (after warm-up period)."""
+        return self._trade_start_date
 
     def peek_next_event(self) -> BaseEvent | None:
         """Peek at the next event without removing it."""

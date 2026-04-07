@@ -92,6 +92,36 @@ class StrategyParams(BaseModel):
         default=3,
         description="Number of consecutive 15m candles required for trend confirmation"
     )
+    # Global SL cooldown (cross-symbol)
+    global_sl_cooldown_minutes: int = Field(
+        default=10,
+        description="Global cooldown after ANY symbol SL in minutes (no entries on any symbol)"
+    )
+    # Trading session filter (UTC hours)
+    session_start_utc: int = Field(
+        default=0,
+        description="Start of active trading session (UTC hour, 0-23)"
+    )
+    session_end_utc: int = Field(
+        default=24,
+        description="End of active trading session (UTC hour, 0-24; 24 = no filter)"
+    )
+
+    # Breakeven SL trigger
+    be_trigger_rr: Decimal = Field(
+        default=Decimal("1.5"),
+        description="Move SL to breakeven when price reaches this R-multiple (0 = disabled)"
+    )
+    # Volume spike filter
+    volume_spike_mult: Decimal = Field(
+        default=Decimal("2.0"),
+        description="Entry only when last 1m volume >= X * avg volume (0 = disabled)"
+    )
+    avg_volume_periods: int = Field(
+        default=5,
+        description="Number of 1m candles for average volume calculation"
+    )
+
     # Performance optimization
     fast_orderbook_mode: bool = Field(
         default=True,
@@ -101,6 +131,17 @@ class StrategyParams(BaseModel):
         default=50,
         description="Downsample orderbook to bucket_ms intervals (0 = disabled, keeps all events)"
     )
+
+
+class AIGateConfig(BaseModel):
+    """AI gate configuration."""
+    enabled: bool = Field(default=True, description="Enable AI gate")
+    model_path: str = Field(default="models/gate.joblib", description="Path to trained model")
+    full_threshold: float = Field(default=0.5, description="P(win) threshold for full size")
+    half_threshold: float = Field(default=0.3, description="P(win) threshold for half size")
+    fallback_action: str = Field(default="full", description="Action when model unavailable: full or half")
+    log_signals: bool = Field(default=True, description="Log signals for training data")
+    log_path: str = Field(default="gate_signals.csv", description="Signal log path")
 
 
 class StrategyConfig(BaseModel):
@@ -117,27 +158,38 @@ class RiskConfig(BaseModel):
     max_drawdown_pct: Decimal = Field(default=Decimal("15.0"), description="Max drawdown %")
     use_trailing_stop: bool = Field(default=False, description="Use trailing stop")
     trailing_stop_pct: Decimal = Field(default=Decimal("1.0"), description="Trailing stop %")
+    dd_soft_pct: Decimal = Field(default=Decimal("10.0"), description="DD level where risk scaling begins (half risk)")
+    dd_hard_pct: Decimal = Field(default=Decimal("20.0"), description="DD level where trading stops completely")
+    dd_cooldown_minutes: int = Field(default=60, description="Pause after hitting hard DD limit before retrying at min risk")
 
 
 class CostsConfig(BaseModel):
     """Trading costs configuration."""
-    fees_bps: Decimal = Field(default=Decimal("6"), description="Trading fees in bps (6 = 0.06%)")
+    fee_entry_bps: Decimal = Field(default=Decimal("2"), description="Entry fee in bps (maker, 2 = 0.02%)")
+    fee_exit_bps: Decimal = Field(default=Decimal("5.5"), description="Exit fee in bps (taker, 5.5 = 0.055%)")
     slippage_bps: Decimal = Field(default=Decimal("2"), description="Expected slippage in bps")
 
     @property
-    def fees_pct(self) -> Decimal:
-        """Get fees as percentage."""
-        return self.fees_bps / Decimal("10000")
+    def fee_entry_pct(self) -> Decimal:
+        return self.fee_entry_bps / Decimal("10000")
+
+    @property
+    def fee_exit_pct(self) -> Decimal:
+        return self.fee_exit_bps / Decimal("10000")
 
     @property
     def slippage_pct(self) -> Decimal:
-        """Get slippage as percentage."""
         return self.slippage_bps / Decimal("10000")
 
     @property
-    def total_cost_pct(self) -> Decimal:
-        """Get total cost (fees + slippage) per side as percentage."""
-        return self.fees_pct + self.slippage_pct
+    def round_trip_fee_pct(self) -> Decimal:
+        """Entry + exit fees as percentage."""
+        return self.fee_entry_pct + self.fee_exit_pct
+
+    @property
+    def round_trip_cost_pct(self) -> Decimal:
+        """Round-trip total: entry fee + exit fee + 2 * slippage."""
+        return self.round_trip_fee_pct + 2 * self.slippage_pct
 
 
 class TelegramConfig(BaseModel):
@@ -202,6 +254,7 @@ class Config(BaseModel):
     symbols: SymbolsConfig = Field(default_factory=SymbolsConfig)
     data: DataConfig = Field(default_factory=DataConfig)
     strategy: StrategyConfig = Field(default_factory=StrategyConfig)
+    ai_gate: AIGateConfig = Field(default_factory=AIGateConfig)
     risk: RiskConfig = Field(default_factory=RiskConfig)
     costs: CostsConfig = Field(default_factory=CostsConfig)
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)

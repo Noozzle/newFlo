@@ -1,0 +1,62 @@
+{
+  "feature_list": [
+    "rel_spread",
+    "ob_imbalance",
+    "buy_vol_30s",
+    "sell_vol_30s",
+    "delta_30s",
+    "trade_count_30s",
+    "avg_trade_size_30s",
+    "delta_ratio_30s",
+    "buy_vol_60s",
+    "sell_vol_60s",
+    "delta_60s",
+    "trade_count_60s",
+    "avg_trade_size_60s",
+    "delta_ratio_60s",
+    "buy_vol_120s",
+    "sell_vol_120s",
+    "delta_120s",
+    "trade_count_120s",
+    "avg_trade_size_120s",
+    "delta_ratio_120s",
+    "range_pct_1m",
+    "close_pos_1m",
+    "atr_14_1m",
+    "atr_14_15m",
+    "close_minus_ma20_15m",
+    "trend_slope_15m",
+    "side_enc",
+    "hour_utc"
+  ],
+  "model_type": "HistGradientBoostingClassifier",
+  "gate_mode": "TOPK",
+  "thresholds": {
+    "topk_pct": 20,
+    "topk_cutoff": 0.5574712812869591
+  },
+  "walk_forward": {
+    "n_folds": 5,
+    "k_values": [
+      20,
+      30,
+      40,
+      50
+    ],
+    "best_k": 20,
+    "median_delta": 1.7446025730753463,
+    "per_k_median_delta": {
+      "20": 1.7446025730753463,
+      "30": 1.554236354488817,
+      "40": 1.1229036919159996,
+      "50": 0.8684027642466594
+    }
+  },
+  "costs": {
+    "fee_estimate": 0.002,
+    "slippage_mode": "per_signal_l1_spread"
+  },
+  "train_samples": 13339,
+  "train_wr": 0.28360446810105705,
+  "version": "2026-02-20T18:03:50.351697+00:00"
+}

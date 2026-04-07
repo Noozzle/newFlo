@@ -39,11 +39,13 @@ class TestLiveWiring:
         mock_config.backtest.initial_capital = Decimal("10000")
         mock_config.risk = MagicMock()
         mock_config.costs = MagicMock()
-        mock_config.costs.fees_bps = 6
+        mock_config.costs.fee_entry_bps = 2
+        mock_config.costs.fee_exit_bps = Decimal("5.5")
         mock_config.costs.slippage_bps = 2
-        mock_config.costs.fees_pct = Decimal("0.0006")
+        mock_config.costs.fee_entry_pct = Decimal("0.0002")
+        mock_config.costs.fee_exit_pct = Decimal("0.00055")
         mock_config.costs.slippage_pct = Decimal("0.0002")
-        mock_config.costs.total_cost_pct = Decimal("0.0008")
+        mock_config.costs.round_trip_cost_pct = Decimal("0.00115")
 
         mock_data_feed = MagicMock()
         mock_exchange = MagicMock()
@@ -74,11 +76,13 @@ class TestLiveWiring:
         mock_config.backtest.initial_capital = Decimal("10000")
         mock_config.risk = MagicMock()
         mock_config.costs = MagicMock()
-        mock_config.costs.fees_bps = 6
+        mock_config.costs.fee_entry_bps = 2
+        mock_config.costs.fee_exit_bps = Decimal("5.5")
         mock_config.costs.slippage_bps = 2
-        mock_config.costs.fees_pct = Decimal("0.0006")
+        mock_config.costs.fee_entry_pct = Decimal("0.0002")
+        mock_config.costs.fee_exit_pct = Decimal("0.00055")
         mock_config.costs.slippage_pct = Decimal("0.0002")
-        mock_config.costs.total_cost_pct = Decimal("0.0008")
+        mock_config.costs.round_trip_cost_pct = Decimal("0.00115")
 
         mock_data_feed = MagicMock()
         mock_exchange = MagicMock()

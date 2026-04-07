@@ -152,7 +152,7 @@ class Reporter:
 - **Symbols:** {', '.join(config.backtest.symbols or config.symbols.trade)}
 - **Period:** {config.backtest.start_date} to {config.backtest.end_date}
 - **Initial Capital:** ${config.backtest.initial_capital}
-- **Fees:** {config.costs.fees_bps} bps
+- **Fees:** entry {config.costs.fee_entry_bps} bps (maker) / exit {config.costs.fee_exit_bps} bps (taker)
 - **Slippage:** {config.costs.slippage_bps} bps
 
 ## Performance Summary

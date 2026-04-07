@@ -119,6 +119,12 @@ class OrderManager:
                 status=OrderStatus.REJECTED,
             )
 
+        # Apply risk_scale from AI gate (HALF → 0.5)
+        risk_scale = Decimal(str(signal.metadata.get("risk_scale", 1.0)))
+        if risk_scale != Decimal("1"):
+            size_result.size = (size_result.size * risk_scale).quantize(Decimal("0.00000001"))
+            size_result.risk_amount = size_result.risk_amount * risk_scale
+
         # Create order request
         client_order_id = f"entry_{signal.symbol}_{uuid4().hex[:8]}"
 
@@ -221,6 +227,38 @@ class OrderManager:
             self._pending_exits[signal.symbol] = response.order_id
 
         return response
+
+    async def execute_modify(
+        self,
+        symbol: str,
+        sl_price: Decimal | None = None,
+        tp_price: Decimal | None = None,
+    ) -> None:
+        """
+        Modify SL/TP on an existing position.
+
+        Updates both portfolio position and exchange adapter.
+        """
+        position = self._portfolio.get_position(symbol)
+        if position is None:
+            return
+
+        if sl_price is not None:
+            position.sl_price = sl_price
+        if tp_price is not None:
+            position.tp_price = tp_price
+
+        response = await self._exchange.set_sl_tp(
+            symbol,
+            sl_price if sl_price is not None else position.sl_price,
+            tp_price if tp_price is not None else position.tp_price,
+        )
+        if not response.success:
+            logger.warning(f"Failed to modify SL/TP for {symbol}: {response.message}")
+        else:
+            logger.info(
+                f"Modified SL/TP for {symbol}: SL={sl_price}, TP={tp_price}"
+            )
 
     async def cancel_all_orders(self, symbol: str | None = None) -> None:
         """Cancel all pending orders for a symbol or all symbols."""

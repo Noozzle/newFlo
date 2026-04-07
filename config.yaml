@@ -8,7 +8,7 @@ symbols:
   - ETHUSDT
   record: []
 data:
-  base_dir: live_data
+  base_dir: live_unseen
   format: csv
   rotation_hours: 1
   write_buffer_size: 100
@@ -16,25 +16,45 @@ strategy:
   name: orderflow_1m
   params:
     trend_period: 15
-    imbalance_threshold: '0.2'
-    delta_threshold: '0.1'
+    imbalance_threshold: '0.75'
+    delta_threshold: '0.4'
     rr_ratio: '3.0'
     min_wr: '0.35'
     atr_period: 14
-    atr_multiplier: '2.5'
+    atr_multiplier: '3.5'
     lookback_trades: 100
-    cooldown_seconds: 60
-    fast_orderbook_mode: true  # Use float parsing for orderbook (faster, epsilon precision trade-off)
-    orderbook_bucket_ms: 1000 # Downsample orderbook to 50ms intervals (0 = disabled, keeps all events)
+    cooldown_seconds: 300
+    fast_orderbook_mode: true
+    global_sl_cooldown_minutes: 15
+    session_start_utc: 12
+    session_end_utc: 22
+    trend_candles: 2
+    volume_spike_mult: '2.0'
+    be_trigger_rr: '1.5'
+    ob_window_ms: 2000
+    ob_compare_gap_ms: 2000
+    orderbook_bucket_ms: 3000
+ai_gate:
+  enabled: false
+  model_path: model/ai_gate_model.pkl
+  full_threshold: 0.5
+  half_threshold: 0.3
+  fallback_action: half
+  log_signals: true
+  log_path: gate_signals.csv
 risk:
   max_position_pct: '2.0'
-  max_daily_sl_count: 3
-  max_concurrent_trades: 3
-  max_drawdown_pct: '50.0'
+  max_daily_sl_count: 5
+  max_concurrent_trades: 1
+  max_drawdown_pct: '15.0'
   use_trailing_stop: false
   trailing_stop_pct: '1.0'
+  dd_soft_pct: '10.0'
+  dd_hard_pct: '25.0'
+  dd_cooldown_minutes: 60
 costs:
-  fees_bps: '10'
+  fee_entry_bps: '2'
+  fee_exit_bps: '5.5'
   slippage_bps: '2'
 telegram:
   enabled: true
@@ -53,7 +73,7 @@ bybit:
   api_key: 6TetnJMPCP60aLwf9F
   api_secret: KdF0KakMUPn46bABwdADvv24eKKOUMITOBWr
 backtest:
-  start_date: '2026-02-03'
-  end_date: '2026-02-06'
+  start_date: '2026-02-01'
+  end_date: '2026-02-20'
   initial_capital: '50'
   symbols: null

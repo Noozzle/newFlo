@@ -22,7 +22,8 @@ def event_bus():
 def costs():
     """Create costs config for testing."""
     return CostsConfig(
-        fees_bps=Decimal("6"),
+        fee_entry_bps=Decimal("2"),
+        fee_exit_bps=Decimal("5.5"),
         slippage_bps=Decimal("2"),
     )
 
@@ -135,7 +136,7 @@ async def test_fees_deducted(exchange, orderbook_event):
     await exchange.place_order(request)
 
     # Balance should be reduced by fees
-    expected_fee = orderbook_event.ask_price * (1 + exchange._costs.slippage_pct) * Decimal("0.1") * exchange._costs.fees_pct
+    expected_fee = orderbook_event.ask_price * (1 + exchange._costs.slippage_pct) * Decimal("0.1") * exchange._costs.fee_entry_pct
     assert exchange.current_balance < initial_balance
     assert exchange.current_balance == initial_balance - expected_fee
 
@@ -324,8 +325,8 @@ async def test_pnl_calculation(exchange, orderbook_event):
     gross_pnl = (exit_price - entry_price) * Decimal("0.1")
 
     # Fees on both sides
-    entry_fee = entry_price * Decimal("0.1") * exchange._costs.fees_pct
-    exit_fee = exit_price * Decimal("0.1") * exchange._costs.fees_pct
+    entry_fee = entry_price * Decimal("0.1") * exchange._costs.fee_entry_pct
+    exit_fee = exit_price * Decimal("0.1") * exchange._costs.fee_exit_pct
 
     expected_final = initial_balance + gross_pnl - entry_fee - exit_fee
 

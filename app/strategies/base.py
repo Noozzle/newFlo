@@ -180,6 +180,40 @@ class BaseStrategy(ABC):
             )
         )
 
+    async def _emit_modify_signal(
+        self,
+        event: "KlineEvent | MarketTradeEvent | OrderBookEvent",
+        new_sl: float | None = None,
+        new_tp: float | None = None,
+        reason: str = "",
+    ) -> None:
+        """
+        Emit a signal to modify SL/TP on an existing position.
+
+        Args:
+            event: Source event (for timestamp and symbol)
+            new_sl: New stop loss price (None = keep current)
+            new_tp: New take profit price (None = keep current)
+            reason: Modification reason
+        """
+        from decimal import Decimal
+        from app.core.events import Side, SignalEvent
+
+        if self._event_bus is None:
+            return
+
+        await self._event_bus.publish_immediate(
+            SignalEvent(
+                timestamp=event.timestamp,
+                symbol=event.symbol,
+                signal_type="modify",
+                side=Side.BUY,  # not used for modify
+                sl_price=Decimal(str(new_sl)) if new_sl is not None else None,
+                tp_price=Decimal(str(new_tp)) if new_tp is not None else None,
+                reason=reason,
+            )
+        )
+
     def has_position(self, symbol: str) -> bool:
         """Check if we have an open position."""
         if self._portfolio is None:

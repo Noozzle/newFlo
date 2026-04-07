@@ -187,9 +187,14 @@ class SimulatedExchangeAdapter(ExchangeAdapter):
         else:
             fill_price = bid_price * (1 - self._costs.slippage_pct)
 
-        # Calculate fee
+        # Determine if closing an existing position
+        is_close = (
+            symbol in self._positions
+            and self._positions[symbol].side != request.side
+        )
+        fee_rate = self._costs.fee_exit_pct if is_close else self._costs.fee_entry_pct
         notional = fill_price * request.qty
-        fee = notional * self._costs.fees_pct
+        fee = notional * fee_rate
 
         # Execute the fill
         await self._process_fill(
@@ -391,7 +396,7 @@ class SimulatedExchangeAdapter(ExchangeAdapter):
             else 1 - self._costs.slippage_pct
         )
 
-        fee = close_price * pos.size * self._costs.fees_pct
+        fee = close_price * pos.size * self._costs.fee_exit_pct
 
         order_id = f"close_{symbol}_{reason}"
 
@@ -653,7 +658,7 @@ class SimulatedExchangeAdapter(ExchangeAdapter):
 
         for order_id, fill_price in to_fill:
             order = self._pending_orders.pop(order_id)
-            fee = fill_price * order.qty * self._costs.fees_pct
+            fee = fill_price * order.qty * self._costs.fee_entry_pct
 
             await self._process_fill(
                 symbol=order.symbol,
@@ -722,7 +727,7 @@ class SimulatedExchangeAdapter(ExchangeAdapter):
 
         if triggered and trigger_price:
             close_side = pos.side.opposite
-            fee = trigger_price * pos.size * self._costs.fees_pct
+            fee = trigger_price * pos.size * self._costs.fee_exit_pct
 
             # Map to Bybit-style stop_order_type for consistency
             stop_order_type = "StopLoss" if triggered == "sl" else "TakeProfit"

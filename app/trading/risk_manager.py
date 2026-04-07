@@ -56,6 +56,8 @@ class RiskManager:
         self._portfolio = portfolio
         self._daily_sl_count = 0
         self._current_day: date | None = None
+        # Adaptive DD: timestamp when hard DD was hit (for cooldown)
+        self._dd_hard_hit_time: datetime | None = None
 
     def calculate_position_size(
         self,
@@ -110,13 +112,15 @@ class RiskManager:
                 reason=f"Daily SL limit ({self._config.max_daily_sl_count}) reached ({self._daily_sl_count} SLs today)",
             )
 
-        # Check drawdown limit
-        if self._portfolio.drawdown >= self._config.max_drawdown_pct:
+        # Adaptive drawdown: scale risk instead of binary stop
+        dd_scale = self._dd_risk_scale(event_time=signal.timestamp)
+        if dd_scale <= Decimal("0"):
             return SizeResult(
                 approved=False,
                 size=Decimal("0"),
                 risk_amount=Decimal("0"),
-                reason=f"Max drawdown ({self._config.max_drawdown_pct}%) reached",
+                reason=f"Hard DD limit ({self._config.dd_hard_pct}%) reached, "
+                       f"current DD={self._portfolio.drawdown:.1f}%",
             )
 
         # Calculate risk per unit
@@ -132,8 +136,8 @@ class RiskManager:
             )
 
         # Calculate position value and check costs
-        # Total round-trip cost = 2 * (fees + slippage)
-        round_trip_cost_pct = 2 * self._costs.total_cost_pct
+        # Total round-trip cost = entry fee + exit fee + 2 * slippage
+        round_trip_cost_pct = self._costs.round_trip_cost_pct
 
         # Check if costs are acceptable relative to risk
         # Cost relative to risk = cost_pct * entry_price / risk_distance
@@ -148,9 +152,11 @@ class RiskManager:
                 reason=f"Costs too high relative to SL distance ({cost_vs_risk:.1%} > {max_cost_vs_risk:.1%})",
             )
 
-        # Calculate position size based on risk percentage
+        # Calculate position size based on risk percentage, scaled by DD level
         equity = self._portfolio.equity
-        risk_amount = equity * (self._config.max_position_pct / 100)
+        risk_amount = equity * (self._config.max_position_pct / 100) * dd_scale
+        if dd_scale < Decimal("1"):
+            logger.info(f"DD risk scaling: {dd_scale} (DD={self._portfolio.drawdown:.1f}%)")
 
         # Size = risk_amount / risk_per_unit
         size = risk_amount / risk_per_unit
@@ -178,6 +184,40 @@ class RiskManager:
             risk_amount=risk_amount,
             reason="OK",
         )
+
+    def _dd_risk_scale(self, event_time: datetime | None = None) -> Decimal:
+        """Return risk multiplier based on current drawdown level.
+
+        0-soft: 1.0, soft-mid: 0.5, mid-hard: 0.25, >hard: 0.0 (stop).
+        After hitting hard limit, a cooldown period must pass before resuming.
+        """
+        dd = self._portfolio.drawdown
+        soft = self._config.dd_soft_pct
+        hard = self._config.dd_hard_pct
+        mid = (soft + hard) / 2  # midpoint between soft and hard
+
+        if dd >= hard:
+            # Record the moment hard DD was first hit
+            if self._dd_hard_hit_time is None and event_time:
+                self._dd_hard_hit_time = event_time
+                logger.warning(f"Hard DD limit hit: {dd:.1f}% >= {hard}%")
+            return Decimal("0")
+
+        # If we previously hit hard DD, enforce cooldown
+        if self._dd_hard_hit_time is not None and event_time:
+            elapsed = (event_time - self._dd_hard_hit_time).total_seconds()
+            cooldown = self._config.dd_cooldown_minutes * 60
+            if elapsed < cooldown:
+                return Decimal("0")
+            # Cooldown passed and DD recovered below hard — reset
+            self._dd_hard_hit_time = None
+            logger.info(f"DD cooldown expired, resuming with reduced risk (DD={dd:.1f}%)")
+
+        if dd >= mid:
+            return Decimal("0.25")
+        if dd >= soft:
+            return Decimal("0.5")
+        return Decimal("1")
 
     def validate_signal(self, signal: EntrySignal) -> tuple[bool, str]:
         """
@@ -213,9 +253,9 @@ class RiskManager:
             )
             return False, f"Daily SL limit ({self._config.max_daily_sl_count}) reached"
 
-        # Check drawdown
-        if self._portfolio.drawdown >= self._config.max_drawdown_pct:
-            return False, "Max drawdown reached"
+        # Adaptive drawdown check
+        if self._dd_risk_scale() <= Decimal("0"):
+            return False, f"Hard DD limit ({self._config.dd_hard_pct}%) reached"
 
         return True, "OK"
 
@@ -348,7 +388,7 @@ class RiskManager:
         if self._daily_sl_count >= self._config.max_daily_sl_count:
             return False
 
-        if self._portfolio.drawdown >= self._config.max_drawdown_pct:
+        if self._dd_risk_scale() <= Decimal("0"):
             return False
 
         return True

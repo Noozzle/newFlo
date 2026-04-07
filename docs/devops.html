@@ -1,0 +1,2815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevOps Engineer — Competency Matrix</title>
+<style>
+:root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232733;
+    --border: #2d3140;
+    --text: #e4e5e9;
+    --text-muted: #9ca3af;
+    --accent: #6366f1;
+    --radius: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ---- Header ---- */
+.page-header {
+    text-align: center;
+    padding: 48px 20px 32px;
+    background: linear-gradient(135deg, #1e1b4b 0%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+}
+.page-header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #818cf8, #6366f1, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+}
+.page-header p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+}
+
+/* ---- Stats ---- */
+.stats-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 28px;
+    text-align: center;
+    min-width: 140px;
+}
+.stat-card .stat-num {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+.stat-card .stat-label {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ---- Navigation ---- */
+.nav-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    background: rgba(26, 29, 39, 0.92);
+}
+.nav-item {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.82rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.nav-item:hover {
+    background: var(--surface2);
+    color: var(--text);
+}
+
+/* ---- Filter ---- */
+.filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.filter-bar label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-right: 4px;
+}
+.filter-btn {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+.search-box {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.search-box:focus {
+    border-color: var(--accent);
+}
+.search-box::placeholder {
+    color: var(--text-muted);
+}
+
+/* ---- Sections ---- */
+.domain-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+.domain-section:hover {
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
+}
+.domain-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+}
+.domain-header:hover {
+    background: var(--surface2);
+}
+.domain-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.domain-icon {
+    font-size: 1.5rem;
+}
+.domain-title h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+.domain-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.meta-pill {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: var(--surface2);
+    color: var(--text-muted);
+}
+.meta-key {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+.chevron {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: transform 0.3s;
+    margin-left: 8px;
+}
+.chevron.collapsed {
+    transform: rotate(-90deg);
+}
+.domain-body {
+    padding: 0 24px 20px;
+    transition: max-height 0.3s ease;
+}
+.domain-body.hidden {
+    display: none;
+}
+
+/* ---- Level blocks ---- */
+.level-block {
+    margin-bottom: 20px;
+}
+.level-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+.level-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 6px;
+    color: white;
+    letter-spacing: 0.05em;
+}
+.level-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.level-count {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+/* ---- Job cards ---- */
+.jobs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.job-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    transition: all 0.2s;
+}
+.job-card:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.job-card.key-job {
+    border-left: 3px solid #f59e0b;
+}
+.job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+.job-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #c7d2fe;
+}
+.badges {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+.badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+}
+.badge-key {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+}
+.badge-new {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+.job-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+.job-desc p {
+    margin-bottom: 4px;
+}
+
+/* ---- Outcomes ---- */
+.outcomes {
+    margin-top: 10px;
+    padding: 12px 16px;
+    background: rgba(99, 102, 241, 0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(99, 102, 241, 0.12);
+}
+.outcomes-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #818cf8;
+    margin-bottom: 6px;
+}
+.outcomes-content {
+    font-size: 0.83rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+}
+.outcomes-content p {
+    margin-bottom: 4px;
+}
+.outcomes-content ul, .outcomes-content ol {
+    padding-left: 20px;
+    margin: 4px 0;
+}
+.outcomes-content li {
+    margin-bottom: 3px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    .page-header h1 { font-size: 1.5rem; }
+    .stats-row { gap: 8px; }
+    .stat-card { min-width: 100px; padding: 12px 16px; }
+    .stat-card .stat-num { font-size: 1.5rem; }
+    .domain-header { padding: 14px 16px; }
+    .domain-body { padding: 0 16px 16px; }
+    .nav-bar { padding: 8px 10px; }
+    .container { padding: 12px; }
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3d4155; }
+
+/* ---- Print ---- */
+@media print {
+    body { background: white; color: black; }
+    .nav-bar, .filter-bar { display: none; }
+    .domain-body.hidden { display: block !important; }
+    .job-card { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>DevOps Engineer — Competency Matrix</h1>
+    <p>Career progression from Trainee (L0) to Lead (L4) across 14 competency domains</p>
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-num">14</div>
+            <div class="stat-label">Domains</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">119</div>
+            <div class="stat-label">Total Tasks</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">55</div>
+            <div class="stat-label">Key Tasks</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">28</div>
+            <div class="stat-label">New Tasks</div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+<nav class="nav-bar">
+    <a href="#section-0" class="nav-item">&#128451; Databases</a>
+<a href="#section-1" class="nav-item">&#128196; Documentation & DR</a>
+<a href="#section-2" class="nav-item">&#128640; Application & Service Deployment</a>
+<a href="#section-3" class="nav-item">&#128190; Storage</a>
+<a href="#section-4" class="nav-item">&#127760; Networking</a>
+<a href="#section-5" class="nav-item">&#128200; Monitoring & Observability</a>
+<a href="#section-6" class="nav-item">&#128187; Compute (Virtual Machines)</a>
+<a href="#section-7" class="nav-item">&#128230; Containers & Orchestration</a>
+<a href="#section-8" class="nav-item">&#128274; Security</a>
+<a href="#section-9" class="nav-item">&#9881; CI/CD Pipelines</a>
+<a href="#section-10" class="nav-item">&#128221; Scripting & Automation</a>
+<a href="#section-11" class="nav-item">&#127959; Infrastructure as Code</a>
+<a href="#section-12" class="nav-item">&#128203; Work Management</a>
+<a href="#section-13" class="nav-item">&#129309; People & Mentoring</a>
+</nav>
+
+<div class="filter-bar">
+    <input type="text" class="search-box" id="searchBox" placeholder="Search tasks..." oninput="filterTasks()">
+    <label>Level:</label>
+    <button class="filter-btn active" onclick="filterLevel(this, 'all')">All</button>
+    <button class="filter-btn" onclick="filterLevel(this, 'L0')">L0</button>
+    <button class="filter-btn" onclick="filterLevel(this, 'L1')">L1</button>
+    <button class="filter-btn" onclick="filterLevel(this, 'L2')">L2</button>
+    <button class="filter-btn" onclick="filterLevel(this, 'L3')">L3</button>
+    <button class="filter-btn" onclick="filterLevel(this, 'L4')">L4</button>
+    <button class="filter-btn" onclick="filterKey(this)" id="keyFilter">Key Only</button>
+</div>
+
+
+    <section class="domain-section" id="section-0">
+        <div class="domain-header" onclick="toggleSection(0)">
+            <div class="domain-title">
+                <span class="domain-icon">&#128451;</span>
+                <h2>Databases</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">9 tasks</span>
+                
+                <span class="chevron" id="chevron-0">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-0">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">3 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Execute SQL query to retrieve data</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Execute a basic SQL DQL queries against an existing database table using an available database client tool. Connect to the database and run the query successfully.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>• Database connection is established using approved access.</p><p>• SQL DQL query executes successfully without errors.</p><p>• Query results are returned.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Identify database engine version</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Identify the version of an existing database engine using standard commands, queries, or client features. Retrieve and observe version information.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Database engine version information is retrieved.</li><li>Version details are available from a command, query, or client output.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Provision and configure a database instance</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Provision a database instance using predefined setup procedures and default configuration settings. Create or configure a user account with predefined permissions.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Database instance is provisioned using standard procedures.</li><li>User access with predefined permissions is configured.              </li><li>Database connectivity is available using the configured access.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">2 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Configure and maintain NoSQL Database</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Provision and configure NoSQL databases with appropriate network settings, access controls, and connection parameters. Create and manage application users with required permissions, ensuring secure and efficient database access for workloads.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Provisioned and configured NoSQL database instances (e.g., MongoDB, CosmosDB, BigTable) with user accounts, permissions, and accessible connection strings.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Configure and maintain SQL-based database solutions</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Provision and configure relational database instances with required network and service settings. Create and manage application users, permissions, and connection strings to support reliable data storage and operations.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Configured and maintained SQL-based databases (e.g., MySQL, PostgreSQL, MSSQL, Oracle, CloudSQL, Azure SQL) with appropriate user accounts, permissions, and connectivity.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #f59e0b">
+                <span class="level-badge" style="background: #f59e0b">L3</span>
+                <span class="level-name">Senior DevOps Engineer</span>
+                <span class="level-count">3 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Configure and maintain database clustering and high availability</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Set up and manage database clusters to ensure high availability, fault tolerance, and load balancing. Implement clustering architectures such as shared-nothing or shared-disk.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Configured database clusters for high availability and load distribution, enabling fault-tolerant and scalable database operations.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Implement and support automated database migration processes</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Implement, improve, and support automated processes for migrating databases across environments or to cloud platforms. Ensure migration workflows include both data and configurations, minimize downtime, and preserve data integrity.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>• Automated migration scripts or pipelines that handle schema/configuration and data.</p><p>• Documentation of migration steps, rollback or recovery procedures, and validation checks.</p><p>• Evidence of successful execution of migrations between environments or to a cloud platform.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Perform database tuning and optimization</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Optimize database performance by adjusting infrastructure resources and database configurations, including disk I/O, memory, indexing, partitioning, and replication strategies.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Implemented database tuning measures such as indexing, partitioning, and memory or disk optimizations, resulting in improved performance and scalability.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Define backup strategy and policies</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Establish and maintain strategies for database backup, restoration, and rollback, ensuring alignment with retention policies and disaster recovery requirements. Incorporate replication, monitoring, and recovery procedures to safeguard critical data.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Produced documentation outlining database backup, rollback, and replication strategies, along with a disaster recovery plan to ensure data resilience.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-1">
+        <div class="domain-header" onclick="toggleSection(1)">
+            <div class="domain-title">
+                <span class="domain-icon">&#128196;</span>
+                <h2>Documentation & DR</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">2 tasks</span>
+                <span class='meta-pill meta-key'>1 key</span>
+                <span class="chevron" id="chevron-1">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-1">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Maintain system-level project documentation</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Create, update, and improve system-level project documentation covering areas such as disaster recovery, business continuity, system maintenance, backup and restore, service availability, and incident retrospectives. Ensure documentation reflects current procedures, dependencies, and rollback processes.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Documented system maintenance</li><li>Documented data backup and restore procedures</li><li>Documented service availability, customer impact, and recovery procedures</li><li>Documented project&#39;s dependencies</li><li>Documented incident retrospective</li><li>Business continuity and disaster recovery plan</li><li>Implemented and documented deployments roll-back procedure</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Define, document, and oversee disaster recovery solutions</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Design and document disaster recovery strategies that meet Recovery Time Objective (RTO) and Recovery Point Objective (RPO) requirements. Select and implement appropriate approaches such as backup and restore, active/passive, or active/active, and coordinate verification with stakeholders.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Produced disaster recovery documentation and implemented, tested solutions, including backups, replication, and failover processes aligned with defined objectives.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-2">
+        <div class="domain-header" onclick="toggleSection(2)">
+            <div class="domain-title">
+                <span class="domain-icon">&#128640;</span>
+                <h2>Application & Service Deployment</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">4 tasks</span>
+                <span class='meta-pill meta-key'>2 key</span>
+                <span class="chevron" id="chevron-2">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-2">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Deploy and configure an application or service on OS level</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Set up and configure applications or services at the operating system level, including user and permission management, installation from repositories or binaries, and customized configuration. Ensure services are integrated with OS service management and aligned with project requirements.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Documented script, configuration or task for application or service with setup details, service availability via FQDN, OS-level integration, and configuration stored in version control.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Automate maintenance procedures for applications or services</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Implement automated procedures for maintaining applications or services, including upgrade and rollback scripts with dependency checks and smoke tests. Develop custom health check scripts to verify service functionality and integration with monitoring systems.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Delivered automated maintenance scripts or configurations stored in version control, ensuring reliable updates, rollbacks, and health monitoring for applications or services.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #f59e0b">
+                <span class="level-badge" style="background: #f59e0b">L3</span>
+                <span class="level-name">Senior DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Build and document integrated SDLC toolchains</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Implement and configure a set of applications and services to support one or more phases of the Software Development Life Cycle (SDLC), such as CI/CD, monitoring, logging, or operational support. Document configurations and automation as code for reproducibility and maintainability.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Delivered integrated SDLC toolchain sets with scripts and configurations stored in version control, supported by documentation and task tracking records.</p><p>e.g:</p><ul class="outcome-list"><li>CI/CD: Github + Jira + Jenkins + Sonarqube + Checkmarx + JFrog Artifactory</li><li>Monitoring and Logging: Prometheus + Grafana, ELK with clustering</li><li>Operational Support: Datadog + PagerDuty, ELK + PagerDuty.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Lead cross-team design of project services ecosystem</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Collaborate with application, data, security, and other teams to define and refine requirements for the project’s services ecosystem. Design and document solutions that address SDLC needs, third-party dependencies, and service integrations while ensuring compliance and interoperability.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Produced a design document with ecosystem architecture, compliance and interoperability requirements, design justifications, and solution diagrams in standard notations (or provided legend).</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-3">
+        <div class="domain-header" onclick="toggleSection(3)">
+            <div class="domain-title">
+                <span class="domain-icon">&#128190;</span>
+                <h2>Storage</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">3 tasks</span>
+                
+                <span class="chevron" id="chevron-3">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-3">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Create a basic storage resource</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Create a basic storage resource such as an object storage container, directory-based file share, or similar storage unit using available tools (web interface, command-line utility, or automation script). Configure essential properties including the resource name, access permissions, and location or path. Confirm that the storage resource has been created successfully and is accessible within the environment.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Storage resource is created using predefined parameters.</li><li>Storage resource is available for use.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Provision and configure storage services</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Provision cloud or software-defined storage services with the required network and access configurations.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Created and configured storage services (e.g., buckets, blobs, or files). Any supporting scripts, runbooks, or configuration files to document the setup.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Implement and manage data archiving and backup strategies</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Configure and maintain data archiving, backups, and versioning in storage services, ensuring alignment with retention policies and recovery requirements. Use automation tools, pipelines, or scheduling to streamline backup and archive operations.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Implemented archiving, versioning, and backup solutions for storage services, supported by automation scripts, pipelines, or built-in service features (e.g., lifecycle policies, cloud backup services).</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-4">
+        <div class="domain-header" onclick="toggleSection(4)">
+            <div class="domain-title">
+                <span class="domain-icon">&#127760;</span>
+                <h2>Networking</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">8 tasks</span>
+                <span class='meta-pill meta-key'>4 key</span>
+                <span class="chevron" id="chevron-4">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-4">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">3 tasks, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Create a basic network segment</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Create a basic network segment by defining a new subnet or isolated network zone using available system tools, virtualization software, or a network configuration interface. Assign an appropriate network address range and ensure the segment is correctly recognized by the environment. Verify that the network segment is active by checking its configuration details or confirming that a test instance/device can attach to it.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Network segment is created with the assigned network address range.</li><li>Network segment configuration details are available in the environment.</li><li>Successful attachment of a test instance or device to the network segment is confirmed.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Apply a pre-defined firewall rule</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Apply a pre-defined firewall rule to allow or restrict specific traffic on a system or virtual machine using built-in firewall tools or a security configuration interface. Ensure that the rule is applied correctly without modifying unrelated settings. Validate the rule by testing the allowed or blocked traffic to confirm the firewall behaves as expected.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Pre-defined firewall rule is applied to the specified system or virtual machine.</li><li>Firewall configuration reflects the applied rule without changes to unrelated settings.</li><li>Connectivity test confirms that the allowed or blocked traffic behaves as expected.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Apply pre-defined network security rule</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Apply a pre-defined network security rule (for example, a network security group rule or routing rule) to a specified subnet, network interface, or resource using approved network configuration tools. Ensure the rule is correctly associated without modifying unrelated network settings. Validate the configuration by confirming that the allowed or restricted traffic behaves as expected.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Screenshot or command output showing the network security or routing rule associated with the target resource.</li><li>Configuration details confirming rule scope and direction.</li><li>Evidence of validation, such as a successful or blocked connectivity test, or confirmation that traffic follows the expected route.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">2 tasks, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Configure and manage network traffic controls</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Configure and manage security groups, ACLs, firewall rules, and routing policies to control inbound and outbound traffic at both instance and subnet levels. Apply port security, protocol filtering, and traffic monitoring.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Configured network traffic controls with configured security groups, ACLs, firewall rules, and routes that enforce security policies and regulate traffic flow.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Manage and maintain virtual network infrastructure</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Provision, configure, and maintain virtual networks in the cloud, including components such as subnets, public IPs, and network interfaces.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Deployed and managed virtual network infrastructure with configured subnets, interfaces, and peering, supported by automation and monitoring for ongoing maintenance.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Configure secure connectivity across private and external networks</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Establish secure connectivity between private, and global networks without exposing traffic to the public internet.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Implemented secure network connections using cloud-native services and security controls, with documented configurations for private connectivity and traffic protection.</p><p>Configured private connectivity services such as Direct Connect, ExpressRoute, or Cloud Interconnect, alongside firewalls, VPNs, and routing protocols.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #f59e0b">
+                <span class="level-badge" style="background: #f59e0b">L3</span>
+                <span class="level-name">Senior DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Implement and manage load balancing solutions</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Configure and manage load balancers to distribute client requests across multiple application servers using predefined routing algorithms. Apply appropriate load balancing types (e.g., application, network, global, or gateway).</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Created and configured load balancing solutions with efficient request distribution and support for features such as SSL offloading and traffic routing.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Develop and lead network segmentation implementation</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Define and oversee the implementation of network segmentation strategies. Guide teams in setting perimeters and applying controls with networking components, applications, and identity-based access to ensure proper isolation of resources.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Documented network segmentation implementation, including defined perimeters, applied controls, risk analysis, performance expectations, and updated configurations.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-5">
+        <div class="domain-header" onclick="toggleSection(5)">
+            <div class="domain-title">
+                <span class="domain-icon">&#128200;</span>
+                <h2>Monitoring & Observability</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">9 tasks</span>
+                <span class='meta-pill meta-key'>3 key</span>
+                <span class="chevron" id="chevron-5">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-5">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">3 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Extract and summarize log entries</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Access logs for a specified application, service, or system using approved logging tools or interfaces. Extract log entries matching predefined criteria (for example, error or warning levels, time range, or component). Prepare a short summary of the extracted entries to support operational review or troubleshooting.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Access to logs via approved tools or interfaces.</li><li>Extracted log entries matching the given criteria.</li><li>Prepared artifact (file, ticket comment, or document) that includes time range used, filter criteria applied, and list or count of matching log entries.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Identify observability data types</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Identify the main types of observability data available in the environment, such as metrics, logs, and traces. Access existing monitoring or logging outputs to view how each data type is represented.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Core observability data types are correctly identified.</li><li>Observability data outputs are available from monitoring or logging tools.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Configure a basic trigger for an automated process</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Configure a simple trigger that starts an automated workflow or task, such as running a script at a scheduled time or initiating an action when a file changes or becomes available. Define the trigger conditions and link them to the specified automation. Test the setup to confirm that the trigger activates correctly and starts the intended process.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>A trigger configuration is created and linked to an automated workflow or task.</li><li>Trigger activation results in the associated automation starting.</li><li>Trigger configuration is available in the automation system.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Configure infrastructure monitoring and logging</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Set up monitoring and logging for core infrastructure components such as CPU, memory, disk operations, and network throughput. Collect and manage logs from multiple sources, and create dashboards or alerts for system performance and security.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Configured monitoring and log collection for infrastructure resources, providing insights through dashboards and alerts to track performance, availability, and security events.</p><p>e.g.</p><ul class="outcome-list"><li>CPU utilization</li><li>Memory utilization</li><li>Disk Read/Write operations</li><li>Network throughput</li><li>Event logs</li><li>Server logs</li><li>System logs</li><li>Authorization logs and access logs</li><li>Changelogs</li><li>Availability logs</li><li>Resource logs</li><li>Threat logs</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">2 tasks, 2 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Implement and maintain custom metrics for monitoring and logging</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Define, configure, and manage custom metrics to capture application-specific performance and operational data beyond standard monitoring capabilities.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Custom metrics set up for existing environment.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Set up alerts for monitoring and logging services</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Configure and customize alerts in monitoring and logging systems (cloud or on-premises) to detect issues in applications and infrastructure. Implement thresholds, anomaly detection, composite rules, and other mechanisms to ensure timely and actionable notifications.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Implemented and documented alert configurations in monitoring and logging systems, covering triggers such as application errors, infrastructure failures, static thresholds, anomaly detection, metric expressions, and composite alarms.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #f59e0b">
+                <span class="level-badge" style="background: #f59e0b">L3</span>
+                <span class="level-name">Senior DevOps Engineer</span>
+                <span class="level-count">2 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Develop and maintain monitoring dashboards</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Create and maintain monitoring dashboards to organize metrics and logs into meaningful views and train team members to effectively use dashboards for operational awareness.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Delivered monitoring dashboards that reflect the real-time state of infrastructure and applications.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Implement distributed tracing for observability in distributed systems</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Configure and integrate distributed tracing solutions using SaaS platforms or tracing tools to capture end-to-end requests across services.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Distributed tracing implementation, enabling comprehensive telemetry and tracing collection.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Design, implement, and improve monitoring systems aligned with project requirements and operational goals</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Design and oversee the implementation and improvement of monitoring systems at the project level. Define standards for monitoring coverage, guide the team in applying tools and practices, and ensure continuous visibility into project infrastructure and application health, performance, and availability. Align monitoring capabilities with project requirements and operational goals.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Produced project-level monitoring documentation, including system diagrams, schemas, and updated configurations. Delivered improvements reflecting project requirements, operational goals, and lessons learned during implementation.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-6">
+        <div class="domain-header" onclick="toggleSection(6)">
+            <div class="domain-title">
+                <span class="domain-icon">&#128187;</span>
+                <h2>Compute (Virtual Machines)</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">6 tasks</span>
+                <span class='meta-pill meta-key'>4 key</span>
+                <span class="chevron" id="chevron-6">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-6">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">3 tasks, 3 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Monitor virtual machine resource usage</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Monitor resource usage on a virtual machine (VM) using available system monitoring tools or command-line utilities. Collect and review key performance metrics such as CPU utilization, memory usage, and general system health to understand current operating conditions. Capture the collected data for a defined period and record any noticeable changes or peaks without performing root-cause analysis.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Output or screenshots from monitoring tools or system commands.</li><li>Recorded CPU and memory usage data for a defined time window.</li><li>Short written summary (ticket, comment, or note) describing what metrics were collected, when and how they were collected, any visible changes or peaks observed.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Perform basic operating system configuration</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Perform basic operating system configuration tasks such as creating a new user account or updating a user’s password. Use either command-line or graphical tools according to system requirements and ensure the changes are applied correctly. Verify the configuration by confirming successful user creation or authentication with updated credentials.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Basic operating system configuration changes are applied successfully.</li><li>System behavior reflects the intended configuration.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Verify virtual machine access</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Access a virtual machine using approved connection methods and credentials in accordance with predefined procedures. Confirm that network access and authentication are successful and that a usable session is established.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Successful authenticated access to a virtual machine is established.</li><li>Connectivity and permissions are verified without modifying system configuration.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Provision virtual machine with predefined types and images</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Provision a virtual machine using predefined types and images from the provider’s gallery through the console, portal, or automated provisioner. Configure essential components such as authorization, storage, networking, firewall, and access settings as part of the setup.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Successfully created a virtual machine with predefined requirements, including storage, network, access, and security configurations, with the ability to explain each parameter in the provider’s environment.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Create and manage custom virtual machine images and configurations</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Build and manage custom virtual machine images tailored to project requirements, with necessary configurations, software, and security settings. Maintain and update these images for use across individual virtual machines or scaling groups to support consistent infrastructure deployment.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Created custom machine image which covers the project needs and its demonstrated usage in a project infrastructure. Reconfigured existing images based on the project needs</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Define and implement non-functional requirements for compute infrastructure</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Define non-functional requirements such as performance, scalability, reliability, and security for compute infrastructure and incorporate them into design documentation. Apply best practices and conduct regular audits to ensure the implemented infrastructure aligns with these requirements.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Produced design and audit documents that capture non-functional requirements and validate their implementation in the compute infrastructure.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-7">
+        <div class="domain-header" onclick="toggleSection(7)">
+            <div class="domain-title">
+                <span class="domain-icon">&#128230;</span>
+                <h2>Containers & Orchestration</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">11 tasks</span>
+                <span class='meta-pill meta-key'>6 key</span>
+                <span class="chevron" id="chevron-7">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-7">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">2 tasks, 2 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Update configuration for containerized application</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Update an existing configuration file used by a containerized application by modifying predefined values such as environment variables or port settings. Apply the configuration change by restarting or recreating the container using existing procedures.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Configuration values for a containerized application are updated.</li><li>Container is restarted or recreated using existing procedures.</li><li>Updated configuration is applied in the running application.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Build and run a basic container image</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Build a simple container image using a base image and a minimal container specification. Run a container from the image to confirm that it starts successfully.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Container image is built.</li><li>Container starts successfully from the built image.</li><li>Container execution output is available.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Create and publish custom container image</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Write a Dockerfile that sets up your container for a custom service and install all required dependencies for the application. Build and run the container with port forwarding to validate functionality, and publish the container image to a container registry. </p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>A Dockerfile is created and stored in a source code management system.</p><p>A custom container image is successfully built from a parent image, pushed to a container registry, and verified to run correctly with port forwarding.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">3 tasks, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Apply observability practices to containerized infrastructure</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Ensure observability of containerized infrastructure by configuring and maintaining monitoring, logging, alerting, and triggering mechanisms. This includes setting up or updating at least two monitoring components to provide visibility into containerized workloads across different environments, ensuring proactive detection and resolution of issues.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Configured monitoring and logging for the сontainerized infrastructure.</li><li>Configured alerting and triggering for the containerized Infrastructure.</li><li>Configured monitoring containers running in Kubernetes (such as K8S, GKE, AKS).</li><li>Configured monitoring containers running in Container Apps (such as Azure Container Apps/Service Fabric/Container Instances, Google Cloud Run).</li><li>Configured monitoring containers running in virtual machine instance.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Design and manage container stack orchestration</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Create and manage container stacks using manifests or configuration files that define storage, networking, and secrets. Apply orchestration tools such as Kubernetes or Docker Compose to ensure reliable deployment and management of multi-container applications.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Kubernetes manifests for the stack of containers with managed storage (persistent volumes), configured network (IP ranges, ports, etc.), and secrets</p><p>YAML configuration for Docker Compose or similar containing the storage, network, and secrets as mandatory sections.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Maintain and troubleshoot containerized infrastructure</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Actively participate in the regular maintenance and troubleshooting of containerized infrastructure, ensuring system stability. This includes identifying, diagnosing, and resolving issues across container runtimes and orchestration platforms, supported by proper documentation and work tracking tickets. A minimum of two to three troubleshooting cases should be completed and evidenced with appropriate records.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Successfully resolved assigned issues related to containerized infrastructure, with documented analysis of container and system logs as well as container resource usage.</p><p>Recommendations for improvements or preventive measures are recorded and linked to work tracking tickets, demonstrating effective problem resolution and infrastructure reliability.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #f59e0b">
+                <span class="level-badge" style="background: #f59e0b">L3</span>
+                <span class="level-name">Senior DevOps Engineer</span>
+                <span class="level-count">4 tasks, 2 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Develop and manage container deployment packages</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Create, maintain, and use versioned deployment packages or components for containerized environments to enable reliable, repeatable, and controlled application delivery. This includes designing deployment strategies that support rolling updates and rollbacks, leveraging tools such as Helm or equivalent package managers, and ensuring consistency and traceability across deployment workflows.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>End-to-end deployment of containerized workloads with rolling update the rollback of the workloads. (i.e. via Helm).</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Implement and manage autoscaling for containerized workloads</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Design, configure, and maintain autoscaling mechanisms for containerized environments. This includes implementing node autoscaling, configuring container resource limits, and enabling container autoscaling based on documented application requirements and workload demand. The solution should adapt dynamically to traffic fluctuations while optimizing resource utilization across different container platforms.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Manifest file including the autoscaling options based on the documented application requirements analysis</p><p>Kubernetes cluster autoscaler configuration based on the requirements of the application. This should also include containers&#39; resource limits configuration.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Implement and manage secret management for containerized workloads</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Design, configure, and maintain secret management solutions for containerized environments to ensure secure handling of sensitive data such as credentials, tokens, and keys.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Documented and configured secrets manager integration for containerized environment.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Optimize and secure service-to-service network traffic in containerized environments</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Design, configure, and maintain networking solutions to enable secure, efficient, and observable communication between services in containerized environments. This includes implementing container networking (e.g., Docker Compose networking, Kubernetes network plugins, or service meshes), applying traffic management policies, securing connectivity through encryption and access controls, and enabling observability of network flows.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Secured, and monitored network traffic between services in a cluster. Configured Load Balancers to secure and connect traffic between containerized services. Created a policy on a service that rate-limit all traffic to a version of a service from a specific origin.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Plan and execute migration to a containerized environment for scalable and efficient workloads</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Guide the planning and execution of workload migration into a containerized environment.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Documented design for the migration of a workload to the containerized environment, that includes:</p><ul class="outcome-list"><li>Existing infrastructure, all dependencies, and connections with external systems.</li><li>Plan of the target infrastructure.</li><li>Migration plan.</li><li>Testing required.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-8">
+        <div class="domain-header" onclick="toggleSection(8)">
+            <div class="domain-title">
+                <span class="domain-icon">&#128274;</span>
+                <h2>Security</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">9 tasks</span>
+                <span class='meta-pill meta-key'>4 key</span>
+                <span class="chevron" id="chevron-8">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-8">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">2 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Prepare user access data for least-privilege review</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Prepare a structured representation of access permissions for a user account using approved sources. The prepared data must group permissions by resource or role, highlight permissions outside the predefined access scope, and be submitted to the review stage for further assessment a security owner.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p><span>Retrieved list of user access permissions.</span></p><p><span>Prepared artifact (table, document, or ticket comment) that groups permissions by resource or role, highlights permissions not included in the reference scope, is shared with a reviewer.</span></p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Verify firewall rules against provided baseline</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Inspect the system’s firewall configuration using available tools or interfaces. Compare active firewall rules against a provided baseline or list of required rules. Record which required rules are present and flag missing or disabled rules for review by a security owner.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Firewall rules output (command output or screenshots).</li><li>Reference baseline or list of required firewall rules used for comparison.</li><li>Documented result (ticket, table, or comment) that lists required rules, marks them as present or missing, and is shared for further review.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Configure and use secure shell access</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Configure and use Secure Shell (SSH) to securely access systems and services. This includes generating and managing SSH keys, configuring source code management (SCM) clients, and ensuring secure user access practices.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Generated Secure Shell (SSH) keys for SSH authentication.</li><li>Configured SSH authentication with the ability to login to Linux host using non-root account and escalate own permissions.</li><li>Demonstrated secure login to systems and SCM platforms using SSH keys.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">2 tasks, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Apply secure data encryption and access controls</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Implement security best practices for data by enabling encryption at rest and in transit according to organizational or customer requirements. Restrict access to sensitive data through authentication, authorization, and role-based access controls, complemented by mechanisms such as SSO, MFA, and network access policies.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Configured encryption and data access control measures that protect sensitive data, with documented examples of secure roles, policies, and authentication methods.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Implement secure coding practices in automation and scripting</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Apply secure coding practices when developing automation scripts and application code to protect confidentiality, integrity, and availability of information. Ensure compliance with security principles by avoiding hardcoded credentials, sanitizing user input, handling errors securely, and using trusted dependencies.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Script or automation code in any language that demonstrates implementation of at least two secure coding practices, such as:</li><li>Password and secret management (no hardcoded credentials, secure retrieval from vaults or environment variables).</li><li>Access control enforcement in scripts or code.</li><li>Secure error handling and sensitive log suppression.</li><li>Cryptographic practices for data protection (e.g., hashing, encryption).</li><li>Input validation and output encoding.</li><li>Secure handling and cleanup of temporary files or resources.</li><li>Evidence of code inspection or vulnerability scanning integrated into a CI/CD pipeline.</li><li>Evidence of compliance or security checks (e.g., linter, SAST tool, or policy-as-code validation) applied during automation workflows.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #f59e0b">
+                <span class="level-badge" style="background: #f59e0b">L3</span>
+                <span class="level-name">Senior DevOps Engineer</span>
+                <span class="level-count">3 tasks, 2 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Automate security testing in pipelines and repositories</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Integrate automated security checks into CI/CD pipelines and source code repositories to detect vulnerabilities early in the development process. Implement practices such as SAST, DAST, dependency and container scanning, and configure repository security features like access controls, code scanning, and secret detection.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Delivered pipelines and repository configurations with automated security tests and policies, ensuring continuous monitoring and mitigation of vulnerabilities throughout the development lifecycle.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Configure and manage role-based access controls (RBAC)</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Configure and manage role-based access controls to ensure secure and least-privilege access to systems and services. Define and apply roles and permissions for users, groups, and service identities across infrastructure platforms, cloud environments, and critical tools. Regularly review and adjust access policies to maintain compliance with security best practices.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Implemented RBAC policies in at least one system (e.g., cloud IAM, Kubernetes, database, CI/CD, SCM, or equivalent).</li><li>Configuration artifacts or policy definitions showing applied roles and permissions.</li><li>Evidence of access reviews or audits confirming enforcement of least-privilege principles.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Implement and manage application traffic security controls</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Configure and maintain security controls for application traffic by applying WAF rules, firewall policies, IDS/IPS systems, and network traffic monitoring. Ensure applications are protected from threats such as unauthorized access, DDoS attacks, and data exposure through proactive filtering and monitoring.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Implemented firewall and WAF configurations along with traffic monitoring solutions, demonstrating effective protection of web applications and network communication.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Implement and maintain threat and vulnerability management practices</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Identify, assess, and document potential security risks such as spoofing, data tampering, information disclosure, denial of service, and privilege escalation. Collaborate with stakeholders or security teams to evaluate vulnerabilities and define mitigation strategies aligned with project security guidelines.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Produced reports and documentation (e.g., architecture diagrams, presentations, or knowledge base entries) that capture identified threats, assessed vulnerabilities, and recommended remediation actions.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-9">
+        <div class="domain-header" onclick="toggleSection(9)">
+            <div class="domain-title">
+                <span class="domain-icon">&#9881;</span>
+                <h2>CI/CD Pipelines</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">13 tasks</span>
+                <span class='meta-pill meta-key'>10 key</span>
+                <span class="chevron" id="chevron-9">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-9">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">3 tasks, 3 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Update configuration files</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Edit a structured configuration file in YAML or JSON format to update specific parameters such as environment variables, feature flags, or connection settings. Ensure that file structure, indentation, and formatting remain valid after modification to prevent parsing or runtime errors. Validate the updated file with a linter or syntax-checking tool to confirm correctness.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Structured configuration file (YAML or JSON) is updated with modified parameters.</li><li>Configuration file remains syntactically valid.</li><li>Linter or syntax-checking output is available for the updated file.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Deploy a pre-configured application</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Deploy a pre-configured application to a target environment such as a virtual machine, container platform, cloud instance, or local system using existing deployment procedures.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Application is deployed using existing deployment procedures.</li><li>Application runtime status is verified after deployment.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Verify CI/CD pipeline execution results</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Trigger or re-run an existing CI/CD pipeline using approved interfaces and predefined parameters. Verify the pipeline execution results by checking stage status and relevant logs to confirm whether the pipeline produced the expected outcome (for example, successful build, test execution, or artifact generation). Document the verification result, including pipeline status and any failed stage reference, in the appropriate tracking or reporting location.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>CI/CD pipeline execution is triggered or re-run using approved parameters.</li><li>Pipeline execution results are verified against the expected outcome (for example, build, tests, or artifact generation).</li><li>Verification result, including pipeline status and reference to execution details or failed stage, is documented in the appropriate tracking or reporting location.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Support existing continuous integration and deployment flows</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Maintain and enhance existing CI/CD flows by updating pipelines, adding new stages or integrations, and adjusting configurations based on evolving project requirements.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Applied changes to existing CI/CD flows, including: added steps, stages, integrations that align with the original business need.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">4 tasks, 4 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Configure continuous integration and deployment (delivery) flows from scratch</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Set up CI/CD flows from the ground up for multi-environment infrastructures such as Dev, QA, and Prod. Implement pipelines through UI or code to handle builds, artifacts, testing, and deployments.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Configured CI/CD pipelines from scratch or new flows added including environment-specific flows, integrations, and logic.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Configure versioning of artifacts during continuous integration flow</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Implement artifact versioning as a mandatory step within the Continuous Integration pipeline. Configure release pipelines to leverage versioned artifacts for controlled deployments and rollback when needed.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Set up CI/CD pipelines with artifact versioning stage and release pipeline that support consistent deployments and recovery based on artifact versions.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Integrate feedback loop into continuous integration and deployment flows</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Configure automated feedback mechanisms within CI/CD pipelines to provide real-time status updates on build, test, and deployment processes. Implement notifications, status badges, or dashboards to ensure teams are informed of pipeline health and outcomes.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Set up CI/CD feedback loops with notifications and build status indicators of pipeline results for development teams.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Integrate third-party services with continuous integration and deployment flows</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Extend CI/CD pipelines by integrating third-party services such as issue tracking systems, artifact repositories, static code analyzers, security scanners, or test report analyzers. Enable automation and visibility by connecting these services directly into build and deployment workflows.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Configured CI/CD flows with third-party integrations, such as</p><ul class="outcome-list"><li>Regular analysis vie SonarQube.</li><li>Regular analysis vie Checkmarx.</li><li>Ticket status updated based on CI/CD outcome.</li><li>Builds are linked to issue tracking and testing systems.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #f59e0b">
+                <span class="level-badge" style="background: #f59e0b">L3</span>
+                <span class="level-name">Senior DevOps Engineer</span>
+                <span class="level-count">3 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Adjust a branching strategy</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Define and adjust a branching strategy that aligns with project requirements, team workflows, and release processes. Configure supporting practices such as code review rules and automated branch management within version control systems.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Implemented and documented a branching strategy (e.g., GitFlow, GitHub Flow, GitLab Flow, or trunk-based development) with supporting CI/CD and VCS configurations.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Integrate automated security scans into continuous integration and deployment (delivery) flows</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Incorporate automated security scanning tools, such as SAST, DAST, or dependency scanners, into CI/CD pipelines to detect vulnerabilities early in the development lifecycle. Ensure scans cover both code and artifacts to enforce security and compliance standards.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Implemented automated security scans within CI/CD flows, providing actionable insights to identify and remediate vulnerabilities before release. (e.g. SAST, DAST, other)</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Set up reproducible environments through automation</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Configure automated provisioning and teardown of testing environments with consistency and repeatability.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Implemented automated environment setup and cleanup within CI/CD pipelines.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">2 tasks, 2 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Lead adoption and implementation of CI/CD tools and processes based on project needs</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Lead the adoption and implementation of CI/CD tools and processes based on project needs. Align teams on selected tooling, define standards for usage, and oversee integration of CI/CD practices into delivery workflows. Ensure new tools and processes are introduced with clear guidance, training, and supporting documentation.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Delivered documented CI/CD tool adoption plan, implemented workflows, and supporting tasks and stories demonstrating successful integration into project delivery.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Lead design and continuous improvement of CI/CD pipelines and processes</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Lead the design and continuous improvement of CI/CD pipelines and processes. Define and refine build, release, and deployment flows to meet evolving business and project needs. Incorporate feedback, metrics, and best practices to enhance efficiency, reliability, and security of delivery pipelines.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Produced documentation and updated implementations of CI/CD pipelines, reflecting assessments, evolving requirements, performance improvements, and lessons learned from project delivery.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-10">
+        <div class="domain-header" onclick="toggleSection(10)">
+            <div class="domain-title">
+                <span class="domain-icon">&#128221;</span>
+                <h2>Scripting & Automation</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">16 tasks</span>
+                <span class='meta-pill meta-key'>10 key</span>
+                <span class="chevron" id="chevron-10">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-10">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">3 tasks, 3 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Write basic automation script</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Create a simple automation script using a scripting language such as Bash, Python, or PowerShell to perform a basic task - for example, listing files in a directory, printing the current date, or displaying system information. Ensure the script is clearly formatted, includes helpful comments, and runs without errors. Test the script to confirm it produces the expected output and completes successfully.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>A simple automation script performs the intended basic task.</li><li>Script execution completes successfully without errors.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Modify existing automation script</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Modify an existing automation script by applying limited, scoped changes based on provided input or feedback, such as correcting syntax errors or adding a parameter. Preserve the original purpose and structure of the script.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Updated script executes successfully with expected behavior.</li><li>Updated script output is available.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Prepare IDE for basic development</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Install an IDE suitable for scripting tasks and add required language support. Configure the runtime or interpreter path, enable basic linting or formatting, and set up a simple run or debug configuration. Validate the setup by creating or opening a sample script and executing it successfully from within the IDE.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>IDE installed with required language extensions enabled.</li><li>Configured interpreter or runtime visible in IDE settings.</li><li>Screenshot or output showing a script executed successfully from the IDE.</li><li>Configuration screenshots for linting or run/debug setup.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">2 tasks, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Maintain and fix automation scripts for routine DevOps tasks</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Maintain and troubleshoot existing automation scripts used for routine DevOps activities. Apply fixes or enhancements to improve reliability, adapt to changing requirements, and ensure continued functionality.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Updated scripts committed to version control and applied in operational workflows or pipelines, showing fixes or enhancements that improved reliability and supported operational needs.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Write scripts to automate routine DevOps tasks</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Develop simple scripts to automate routine DevOps activities such as file management, log analysis, or text processing. Ensure scripts are reusable, documented, and applied consistently in daily operational workflows or pipelines.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Automation scripts (e.g., Bash, Python, PowerShell) committed to version control and used in operational workflows or pipelines, demonstrating automation of routine DevOps tasks.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">3 tasks, 2 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Configure development environments and tooling for DevOps workflows</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Set up and configure development environments and IDEs to support DevOps scripting and automation, including debugger integration, syntax highlighting, and code formatting.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Configured IDEs and development tools with debugging, syntax highlighting, and formatting features.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Write automation scripts for infrastructure and operations</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Develop and maintain scripts to automate infrastructure and operational tasks using scripting or programming languages. Apply imperative constructs such as loops, conditionals, error handling, and input validation to improve functionality, reliability, and adaptability.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Automation scripts committed to version control and used in operational workflows or pipelines, demonstrating control structures (loops, conditionals, input validation, error handling) aligned with infrastructure and operational requirements.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Write query scripts for operational and automation tasks</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Develop query scripts to retrieve, analyze, or manage data across SQL/NoSQL databases, analytics platforms, and logging systems. Apply query languages to integrate data handling into operational or automation workflows.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Created and executed query scripts integrated into operational or automation tasks, such as:</p><ul class="outcome-list"><li>log analytics systems</li><li>audit logging systems</li><li>message queues</li><li>SQL/NoSQL databases</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #f59e0b">
+                <span class="level-badge" style="background: #f59e0b">L3</span>
+                <span class="level-name">Senior DevOps Engineer</span>
+                <span class="level-count">6 tasks, 3 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Apply advanced query techniques to support infrastructure and operational tasks</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Write and optimize complex queries using advanced techniques (e.g., joins, conditionals, aggregations, pattern matching, filtering) across SQL/NoSQL databases, analytics platforms, and logging systems. Use these queries to support infrastructure operations, troubleshooting, and performance analysis at the project level.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Delivered advanced query scripts that fulfilled project-level operational requirements (e.g., joins, aggregations, multi-source queries), integrated into infrastructure or operational workflows, and tracked through project tasks or tickets.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Implement structured logging in automation and infrastructure scripts</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Enhance automation and infrastructure scripts with structured logging. Apply multiple log levels, configurable settings, and clear documentation to provide meaningful insights for debugging, monitoring, and maintaining scripts in different environments.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Automation scripts with structured logging committed to version control and used in operational workflows or pipelines, providing meaningful logs (levels, configuration) for debugging and monitoring.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Perform refactoring and re-engineering of DevOps scripts and tools to improve quality, reliability, and maintainability</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Refactor and enhance DevOps scripts and tools to align with project coding standards and best practices. Apply improvements such as input validation, output verification, unit testing, and linting to ensure quality, reliability, and maintainability.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Refactored scripts committed to version control and applied in operational workflows or pipelines, demonstrating improvements such as validation, testing, linting, and enhanced maintainability.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Review pull requests across the team to ensure code quality and standards compliance</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Participate in the review of pull/merge requests to validate code quality, adherence to standards, and alignment with project requirements. Provide constructive feedback through version control platforms or ticketing systems to support continuous improvement.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Documented review comments in version control or task tracking systems.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Use multiple programming and scripting languages in DevOps solutions</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Apply more than one programming or scripting language to develop automation scripts and DevOps tools. Leverage the strengths of different languages (e.g., Python, Bash, PowerShell, Groovy, Golang) to address diverse project needs and workflows.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Produced solutions implemented in multiple languages(Python, Bash, Powershell, Groovy, Java, Golang, etc.), demonstrating flexibility and adaptability in DevOps automation.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Write complex automation and scripts following best practices and vendor guidelines</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Develop or refactor scripts for complex automation tasks using functions, objects, or classes where applicable. Follow vendor guidelines and best practices to ensure readability, maintainability, and long-term supportability.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Structured automation scripts (functions, classes, objects) committed to version control and used in operational workflows or pipelines, demonstrating adherence to vendor guidelines and best practices.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">2 tasks, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Implement and promote programming patterns in DevOps solutions</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Apply recognized programming patterns (e.g., singleton, proxy, decorator, adapter) in DevOps scripts and automation solutions. Promote their adoption to improve consistency, maintainability, and scalability across project-level automation.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Automation scripts or shared library components committed to version control and used in operational workflows or pipelines, demonstrating application of programming patterns (e.g., singleton, decorator, adapter) with supporting documentation promoting adoption within the project.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Lead code review process for DevOps teams</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Establish and maintain a structured code review process for DevOps and automation-related code. Define rules such as minimum approvers, branching strategies, and coding standards, while documenting best practices to ensure quality and consistency.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Implemented code review policies and documentation, including review rules and branching strategies, enforced through version control platforms.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-11">
+        <div class="domain-header" onclick="toggleSection(11)">
+            <div class="domain-title">
+                <span class="domain-icon">&#127959;</span>
+                <h2>Infrastructure as Code</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">11 tasks</span>
+                <span class='meta-pill meta-key'>7 key</span>
+                <span class="chevron" id="chevron-11">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-11">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">3 tasks, 3 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Execute automated configuration change</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Execute a predefined automation script or tool to apply a configuration change to a target system or environment. Run the automation with required input parameters without modifying automation logic or templates. As a result, the configuration change is applied by the automation.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Predefined automation is executed.</li><li>Configuration change is applied by the automation.</li><li>Automation execution output is available.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Provision resource from a template</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Provision or update an infrastructure resource using an existing template and predefined input parameters by executing an automation command, playbook, or script.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Infrastructure resource is provisioned or updated using an existing template.</li><li>Provisioning execution output is available.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Review and record IaC execution results</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Review the output of an infrastructure automation run executed using an Infrastructure as Code (IaC) tool. Examine execution results to identify planned or applied infrastructure changes. Record a concise summary of the execution output, including affected resources and execution type, to support verification and change tracking, ensuring intended changes have been made.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Output from an infrastructure automation run (plan or apply).</li><li>Visible list of planned or applied infrastructure changes.</li><li>Written summary (ticket, comment, or document) that includes execution type (plan or apply), affected resources, and confirmation that the output was reviewed.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">3 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Maintain and support automated infrastructure configuration in project environments</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Support automated configuration of infrastructure by maintaining and updating configuration management files, templates, and roles. Ensure environments remain consistent and reproducible through automation tools such as Ansible, Puppet, Chef, or Terraform.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Maintained automated configuration code under version control, validated and applied reproducible configurations, provided documentation and troubleshooting support with ad-hoc commands.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Store and manage configuration files in version control systems for infrastructure code</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Store infrastructure and configuration management code in version control systems for tracking, collaboration, and rollback of changes. Apply versioning practices such as tagging releases.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Maintained configuration files in version control with release tags and versioned artifacts, enabling traceability and rollback when needed.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Use infrastructure as code tools to provision basic infrastructure</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Provision the minimum viable version of cloud or on-premises environments using infrastructure-as-code tools such as Terraform, Ansible, or equivalent. Deploy core infrastructure components (e.g., networks, compute, storage, and databases) through reusable modules and document automation practices.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Delivered IaC configurations (e.g., Terraform modules, Ansible playbooks, or equivalent) with supporting documentation to provision and manage basic infrastructure environments.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">1 task, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Use secret management tool while using automated configuration and provisioning infrastructure</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Integrate secret management tools such as Ansible Vault, HashiCorp Vault, or cloud-native secret management services into infrastructure-as-code workflows. Ensure secrets are encrypted, securely stored, and accessed only according to the principle of least privilege.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Configured secret management with encrypted variables and RBAC policies, ensuring least privilege access to sensitive data within automated provisioning and configuration processes.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #f59e0b">
+                <span class="level-badge" style="background: #f59e0b">L3</span>
+                <span class="level-name">Senior DevOps Engineer</span>
+                <span class="level-count">2 tasks, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Contribute to design and architecture of configuration management systems</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Participate in the design and architecture of configuration management systems by creating infrastructure diagrams, schemas, and CI/CD workflows for applying configuration changes. Collaborate with teams to align design decisions with current state, project needs, and automation best practices.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Delivered architecture diagrams, CI/CD schemas, and documented tasks reflecting contributions to configuration management design and implementation.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Implement automated availability and disaster recovery using infrastructure as code</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Implement high availability (HA) and disaster recovery (DR) strategies through infrastructure-as-code and configuration management tools. Automate provisioning, validation, and recovery processes while ensuring changes are tested and aligned with defined RTO and RPO objectives.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Developed and tested automated HA and DR plans using IaC tools, with documentation detailing recovery steps, timelines, and configuration practices.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">2 tasks, 2 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Lead implementation of automated configuration management and infrastructure provisioning</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Oversee and guide the implementation of infrastructure-as-code solutions for automated configuration and provisioning. Delegate tasks to team members, manage stories and epics, and ensure alignment of solutions with project goals and stakeholder requirements.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Delivered implementation plans and documentation, with tasks and stories tracked for automated configuration and provisioning.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Conduct audits to identify improvement areas in automated provisioning and configuration management</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Perform audits of infrastructure-as-code and configuration management practices to detect inefficiencies, compliance gaps, and areas for optimization. Document findings, propose improvements, and work with teams to refine IaC structures, secure secrets, and enhance automation reliability.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Produced audit reports and transition plans outlining current and target states, with documented improvements such as repository refactoring, modularization, and secure configuration practices.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-12">
+        <div class="domain-header" onclick="toggleSection(12)">
+            <div class="domain-title">
+                <span class="domain-icon">&#128203;</span>
+                <h2>Work Management</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">6 tasks</span>
+                <span class='meta-pill meta-key'>2 key</span>
+                <span class="chevron" id="chevron-12">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-12">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #6366f1">
+                <span class="level-badge" style="background: #6366f1">L0</span>
+                <span class="level-name">Trainee DevOps Engineer</span>
+                <span class="level-count">2 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Update work items according to process</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Ensure that assigned work items in the tracking system accurately represent the current state of the work so they can be reliably used by the team. Update task status, fields, and descriptions in accordance with the defined workflow and team conventions, providing sufficient context about progress, recent changes, and next steps to support collaboration, planning, and reporting.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Work items are updated in the tracking system.</li><li>Task status and descriptions reflect current progress.</li></ul></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Clarify task scope and acceptance criteria</div>
+                    <div class="badges"><span class="badge badge-new">NEW</span></div>
+                </div>
+                <div class="job-desc"><p>Ensure that assigned work items contain clear and actionable information required to start and complete the task. Review task scope, constraints, dependencies, and acceptance criteria, and document clarifications directly in the work item so that the task meets the team’s definition of ready and can be implemented without avoidable rework or follow-up questions.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><ul class="outcome-list"><li>Task scope and expected outcomes are clarified.</li><li>Missing or unclear task details are documented in the work item.</li><li>Work item information is updated to reflect the clarified scope.</li></ul></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">2 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Apply estimation techniques for personal work items</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Use appropriate estimation techniques to evaluate the effort and time required for DevOps tasks. Provide clear justifications for chosen estimates and record them in project tracking systems or boards.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Estimated personal work items documented in tracking tools according to project requirements and DevOps practices.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Clarify and formalize requirements for your work items</div>
+                    <div class="badges"></div>
+                </div>
+                <div class="job-desc"><p>Gather, clarify, and document requirements for assigned tasks to ensure alignment with project goals and expectations. Define task details in a clear and structured format to support effective execution and tracking.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Documented work items in task tracking systems or boards.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">2 tasks, 2 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Implement and maintain estimation practices across the team</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Establish and support estimation procedures for project-related tasks by applying standardized techniques. Ensure consistency and accuracy in effort estimation to improve planning, predictability, and team alignment.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Implemented team-wide estimation practices with tasks consistently including estimation values.</p></div>
+                </div>
+            </div>
+
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Track and analyze operational performance of the team</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                <div class="job-desc"><p>Collect and evaluate performance metrics to monitor the team’s capacity, velocity, and delivery efficiency.</p></div>
+                
+                <div class="outcomes">
+                    <div class="outcomes-title">Expected Outcomes</div>
+                    <div class="outcomes-content"><p>Produced performance reports or boards showing team capacity and velocity, enabling data-driven analysis of operational efficiency.</p></div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <section class="domain-section" id="section-13">
+        <div class="domain-header" onclick="toggleSection(13)">
+            <div class="domain-title">
+                <span class="domain-icon">&#129309;</span>
+                <h2>People & Mentoring</h2>
+            </div>
+            <div class="domain-meta">
+                <span class="meta-pill">12 tasks</span>
+                <span class='meta-pill meta-key'>2 key</span>
+                <span class="chevron" id="chevron-13">&#9660;</span>
+            </div>
+        </div>
+        <div class="domain-body" id="body-13">
+            
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #0ea5e9">
+                <span class="level-badge" style="background: #0ea5e9">L1</span>
+                <span class="level-name">Junior DevOps Engineer</span>
+                <span class="level-count">1 task</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Work with a mentor as a mentee</div>
+                    <div class="badges"></div>
+                </div>
+                
+                
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #10b981">
+                <span class="level-badge" style="background: #10b981">L2</span>
+                <span class="level-name">Middle DevOps Engineer</span>
+                <span class="level-count">2 tasks</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Conduct a performance review for Trainee level</div>
+                    <div class="badges"></div>
+                </div>
+                
+                
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Mentor Trainee and Junior level engineers</div>
+                    <div class="badges"></div>
+                </div>
+                
+                
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #f59e0b">
+                <span class="level-badge" style="background: #f59e0b">L3</span>
+                <span class="level-name">Senior DevOps Engineer</span>
+                <span class="level-count">5 tasks, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Conduct a performance review for Junior level</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                
+                
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Conduct a technical interview up to Senior level</div>
+                    <div class="badges"></div>
+                </div>
+                
+                
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Conduct company-wide presentations or trainings</div>
+                    <div class="badges"></div>
+                </div>
+                
+                
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Implement any DevOps tasks in SoftServe Open Source, OpenTech, or IT Academy social projects</div>
+                    <div class="badges"></div>
+                </div>
+                
+                
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Mentor engineers up to Senior level</div>
+                    <div class="badges"></div>
+                </div>
+                
+                
+            </div>
+            </div>
+        </div>
+
+        <div class="level-block">
+            <div class="level-header" style="--level-color: #ef4444">
+                <span class="level-badge" style="background: #ef4444">L4</span>
+                <span class="level-name">Lead DevOps Engineer</span>
+                <span class="level-count">4 tasks, 1 key</span>
+            </div>
+            <div class="jobs-list">
+                
+            <div class="job-card  key-job">
+                <div class="job-header">
+                    <div class="job-name">Conduct a performance review for Middle+ level engineers</div>
+                    <div class="badges"><span class="badge badge-key">KEY</span></div>
+                </div>
+                
+                
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Conduct a technical interview for engineers up to Lead level</div>
+                    <div class="badges"></div>
+                </div>
+                
+                
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Implement any DevOps tasks in SoftSe вrve Open Source, OpenTech, or IT Academy social projects as a Tech Lead</div>
+                    <div class="badges"></div>
+                </div>
+                
+                
+            </div>
+
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-name">Mentor engineers up to Lead level</div>
+                    <div class="badges"></div>
+                </div>
+                
+                
+            </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+function toggleSection(idx) {
+    const body = document.getElementById('body-' + idx);
+    const chev = document.getElementById('chevron-' + idx);
+    body.classList.toggle('hidden');
+    chev.classList.toggle('collapsed');
+}
+
+let activeLevel = 'all';
+let keyOnly = false;
+
+function filterLevel(btn, level) {
+    activeLevel = level;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (keyOnly) document.getElementById('keyFilter').classList.add('active');
+    applyFilters();
+}
+
+function filterKey(btn) {
+    keyOnly = !keyOnly;
+    btn.classList.toggle('active');
+    applyFilters();
+}
+
+function filterTasks() {
+    applyFilters();
+}
+
+function applyFilters() {
+    const q = document.getElementById('searchBox').value.toLowerCase();
+    document.querySelectorAll('.level-block').forEach(block => {
+        const badge = block.querySelector('.level-badge');
+        const lvl = badge ? badge.textContent.trim() : '';
+        const matchLevel = activeLevel === 'all' || lvl === activeLevel;
+
+        if (!matchLevel) {
+            block.style.display = 'none';
+            return;
+        }
+
+        let anyVisible = false;
+        block.querySelectorAll('.job-card').forEach(card => {
+            const text = card.textContent.toLowerCase();
+            const isKey = card.classList.contains('key-job');
+            const matchSearch = !q || text.includes(q);
+            const matchKey = !keyOnly || isKey;
+
+            if (matchSearch && matchKey) {
+                card.style.display = '';
+                anyVisible = true;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        block.style.display = anyVisible ? '' : 'none';
+    });
+}
+
+// Start with all sections expanded
+</script>
+
+</body>
+</html>

@@ -33,9 +33,10 @@ print(f"Feb 2026: ATR mean={feb['atr'].mean():.4f}, min={feb['atr'].min():.4f}, 
 
 print()
 print('Cost analysis:')
-fees_bps = 10
+fee_entry_bps = 2      # maker
+fee_exit_bps = 5.5     # taker
 slippage_bps = 2
-round_trip = 2 * (fees_bps + slippage_bps) / 10000
+round_trip = (fee_entry_bps + fee_exit_bps + 2 * slippage_bps) / 10000
 print(f'Round-trip cost: {round_trip*100:.2f}%')
 
 # For SOL ~$120

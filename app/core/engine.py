@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
@@ -23,6 +24,7 @@ from app.core.events import (
     SignalEvent,
     TradeClosedEvent,
 )
+from app.trading.ai_gate import AIGate, GateAction, GateDecision
 from app.trading.order_manager import OrderManager
 from app.trading.portfolio import Portfolio
 from app.trading.risk_manager import RiskManager
@@ -90,6 +92,20 @@ class Engine:
             portfolio=self._portfolio,
         )
 
+        # AI gate
+        try:
+            gate_cfg = config.ai_gate
+            self._ai_gate = AIGate(
+                model_path=gate_cfg.model_path,
+                full_threshold=gate_cfg.full_threshold,
+                half_threshold=gate_cfg.half_threshold,
+                fallback_action=gate_cfg.fallback_action,
+                log_path=gate_cfg.log_path if gate_cfg.log_signals else None,
+                enabled=gate_cfg.enabled,
+            )
+        except Exception:
+            self._ai_gate = AIGate(enabled=False)
+
         # Order manager
         self._order_manager = OrderManager(
             event_bus=self._event_bus,
@@ -101,11 +117,25 @@ class Engine:
             trade_store=trade_store,
         )
 
+        # Warm-up: if data feed has a trade_start_date, skip signals before it
+        self._trade_start_date: datetime | None = None
+        if isinstance(data_feed, HistoricalDataFeed):
+            self._trade_start_date = getattr(data_feed, 'trade_start_date', None)
+
         # State
         self._running = False
         self._current_time: datetime | None = None
-        self._current_prices: dict[str, Decimal] = {}
+        self._current_prices: dict[str, Decimal | float] = {}
         self._events_processed = 0
+
+        # Profiling accumulators (seconds)
+        self._prof = {
+            "data_iter": 0.0,
+            "dispatch": 0.0,
+            "strategy": 0.0,
+            "exchange": 0.0,
+            "signal": 0.0,
+        }
 
         # Register event handlers
         self._register_handlers()
@@ -129,7 +159,9 @@ class Engine:
         self._risk_manager.check_new_day(event.timestamp, use_realtime=is_live)
 
         # Forward to strategy
+        t0 = time.perf_counter()
         await self._strategy.on_kline(event)
+        self._prof["strategy"] += time.perf_counter() - t0
 
         # Update equity curve periodically
         if self._events_processed % 100 == 0:
@@ -141,7 +173,9 @@ class Engine:
         self._current_prices[event.symbol] = event.price
 
         # Forward to strategy
+        t0 = time.perf_counter()
         await self._strategy.on_trade(event)
+        self._prof["strategy"] += time.perf_counter() - t0
 
     async def _on_orderbook(self, event: OrderBookEvent) -> None:
         """Handle orderbook event."""
@@ -150,13 +184,21 @@ class Engine:
 
         # Forward to simulated exchange for fill checking
         if isinstance(self._exchange, SimulatedExchangeAdapter):
+            t0 = time.perf_counter()
             await self._exchange.process_orderbook(event)
+            self._prof["exchange"] += time.perf_counter() - t0
 
         # Forward to strategy
+        t0 = time.perf_counter()
         await self._strategy.on_orderbook(event)
+        self._prof["strategy"] += time.perf_counter() - t0
 
     async def _on_signal(self, event: SignalEvent) -> None:
         """Handle trading signal from strategy."""
+        # Skip signals during warm-up period
+        if self._trade_start_date and event.timestamp < self._trade_start_date:
+            return
+
         # Only trade symbols from the trade list, not record-only symbols
         if event.symbol not in self._config.symbols.trade:
             return
@@ -173,7 +215,26 @@ class Engine:
                 reason=event.reason,
                 metadata=event.metadata,
             )
+
+            # AI gate: SKIP / HALF / FULL
+            t0 = time.perf_counter()
+            decision = await self._ai_gate.decide(signal)
+            if decision.action == GateAction.SKIP:
+                self._prof["signal"] += time.perf_counter() - t0
+                logger.info(f"AI gate SKIP: {signal.symbol} {signal.side.value} ({decision.reason})")
+                return
+            if decision.action == GateAction.HALF:
+                signal.metadata["risk_scale"] = 0.5
+
             await self._order_manager.execute_entry(signal)
+            self._prof["signal"] += time.perf_counter() - t0
+
+        elif event.signal_type == "modify":
+            await self._order_manager.execute_modify(
+                symbol=event.symbol,
+                sl_price=event.sl_price,
+                tp_price=event.tp_price,
+            )
 
         elif event.signal_type == "exit":
             signal = ExitSignal(
@@ -183,7 +244,9 @@ class Engine:
                 exit_price=event.price,
                 metadata=event.metadata,
             )
+            t0 = time.perf_counter()
             await self._order_manager.execute_exit(signal)
+            self._prof["signal"] += time.perf_counter() - t0
 
     async def _on_trade_closed(self, event: TradeClosedEvent) -> None:
         """Forward trade closed event to strategy."""
@@ -221,27 +284,53 @@ class Engine:
         )
 
         self._running = True
+        wall_start = time.perf_counter()
+
+        # Fast-path: direct handler dispatch bypasses EventBus for data feed events.
+        # HistoricalDataFeed produces time-sorted events (k-way merge), so no
+        # priority queue is needed.  Internal events (SignalEvent, TradeClosedEvent,
+        # FillEvent, etc.) still route through EventBus via publish_immediate.
+        _fast = {
+            KlineEvent: self._on_kline,
+            MarketTradeEvent: self._on_trade,
+            OrderBookEvent: self._on_orderbook,
+        }
+        _fast_get = _fast.get  # avoid attr lookup in hot loop
+        _eb_publish = self._event_bus.publish_immediate  # fallback
+        is_sim = isinstance(self._exchange, SimulatedExchangeAdapter)
+        _update_time = self._exchange.update_time if is_sim else None
+        _prof = self._prof
 
         # Process events one by one
+        # Note: _check_day is called inside _on_kline (every ~60s), not per-event
         try:
+            t_iter = time.perf_counter()
             for event in self._data_feed.iter_events():
+                _prof["data_iter"] += time.perf_counter() - t_iter
+
                 if not self._running:
                     break
 
                 # Update simulated exchange time
-                if isinstance(self._exchange, SimulatedExchangeAdapter):
-                    self._exchange.update_time(event.timestamp)
+                if _update_time is not None:
+                    _update_time(event.timestamp)
 
-                # Check for new trading day (reset daily loss limit) - backtest uses event time
-                self._risk_manager.check_new_day(event.timestamp, use_realtime=False)
+                # Dispatch event — direct call for data feed types, EventBus for others
+                t_disp = time.perf_counter()
+                handler = _fast_get(type(event))
+                if handler is not None:
+                    await handler(event)
+                else:
+                    await _eb_publish(event)
+                _prof["dispatch"] += time.perf_counter() - t_disp
 
-                # Dispatch event
-                await self._event_bus.publish_immediate(event)
                 self._events_processed += 1
 
                 # Progress logging
-                if self._events_processed % 10000 == 0:
+                if self._events_processed % 500000 == 0:
                     logger.info(f"Processed {self._events_processed} events")
+
+                t_iter = time.perf_counter()
 
         finally:
             self._running = False
@@ -252,9 +341,35 @@ class Engine:
         if self._current_time:
             self._portfolio.update_equity_curve(self._current_time, self._current_prices)
 
+        wall_total = time.perf_counter() - wall_start
+
         logger.info(
             f"Backtest complete. Processed {self._events_processed} events, "
             f"{len(self._portfolio.trades)} trades"
+        )
+        self._print_profile(wall_total)
+
+    def _print_profile(self, wall_total: float) -> None:
+        """Print profiling summary table."""
+        p = self._prof
+        dispatch_overhead = p["dispatch"] - p["strategy"] - p["exchange"] - p["signal"]
+        accounted = p["data_iter"] + p["dispatch"]
+        other = wall_total - accounted
+
+        eps = self._events_processed / wall_total if wall_total > 0 else 0
+
+        logger.info(
+            f"\n{'─'*50}\n"
+            f"  BACKTEST PROFILE  ({self._events_processed:,} events in {wall_total:.1f}s = {eps:,.0f} ev/s)\n"
+            f"{'─'*50}\n"
+            f"  Data load/parse     {p['data_iter']:>8.2f}s  ({p['data_iter']/wall_total*100:5.1f}%)\n"
+            f"  Event dispatch tot  {p['dispatch']:>8.2f}s  ({p['dispatch']/wall_total*100:5.1f}%)\n"
+            f"    Strategy handlers {p['strategy']:>8.2f}s  ({p['strategy']/wall_total*100:5.1f}%)\n"
+            f"    Simulated exch    {p['exchange']:>8.2f}s  ({p['exchange']/wall_total*100:5.1f}%)\n"
+            f"    Signal (gate+OM)  {p['signal']:>8.2f}s  ({p['signal']/wall_total*100:5.1f}%)\n"
+            f"    Bus overhead      {dispatch_overhead:>8.2f}s  ({dispatch_overhead/wall_total*100:5.1f}%)\n"
+            f"  Other (setup/log)   {other:>8.2f}s  ({other/wall_total*100:5.1f}%)\n"
+            f"{'─'*50}"
         )
 
     async def run_live(self) -> None:
