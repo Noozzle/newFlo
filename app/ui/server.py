@@ -40,6 +40,7 @@ import asyncio
 import json
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -53,9 +54,21 @@ from app.ui.models import DayStats, MonthData
 UI_DIR = Path(__file__).parent
 TEMPLATES_DIR = UI_DIR / "templates"
 STATIC_DIR = UI_DIR / "static"
+# Angular build: check browser/ subfolder (production) or flat (dev)
+_ng_base = Path(__file__).parent.parent.parent / "flotrader-ui" / "dist" / "flotrader-ui"
+ANGULAR_DIST = _ng_base / "browser" if (_ng_base / "browser").exists() else _ng_base
 
 # Create FastAPI app
 app = FastAPI(title="FloTrader Calendar", version="1.0.0")
+
+# CORS for Angular dev server
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -314,6 +327,164 @@ async def day_detail(
     )
 
 
+def _serialize_decimal(v: Decimal) -> str:
+    """Convert Decimal to string for JSON."""
+    return f"{v:.8f}".rstrip("0").rstrip(".")
+
+
+@app.get("/api/calendar/{year}/{month}")
+async def api_calendar(year: int, month: int, tz: str = "utc"):
+    """JSON API for calendar data."""
+    assert pnl_client is not None
+
+    use_utc = tz.lower() != "local"
+    today = get_today(use_utc)
+
+    month_data, calendar_days = get_calendar_data(year, month, use_utc)
+
+    # Balance & positions
+    balance = pnl_client.get_wallet_balance()
+    total_equity = balance["total_equity"]
+    open_positions = pnl_client.get_open_positions()
+    total_unrealized = sum(p.unrealized_pnl for p in open_positions)
+    total_unrealized_pct = (total_unrealized / total_equity * 100) if total_equity > 0 else Decimal("0")
+
+    # Prev/next month
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+    next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
+
+    return {
+        "month_data": {
+            "year": month_data.year,
+            "month": month_data.month,
+            "month_name": month_data.month_name,
+            "month_pnl": _serialize_decimal(month_data.month_pnl),
+            "month_trades": month_data.month_trades,
+        },
+        "calendar_days": [
+            {
+                "number": d["number"],
+                "css_class": d["css_class"],
+                "date_str": d["date_str"],
+                "stats": {
+                    "trade_count": d["stats"].trade_count,
+                    "total_pnl": _serialize_decimal(d["stats"].total_pnl),
+                    "winning_trades": d["stats"].winning_trades,
+                    "losing_trades": d["stats"].losing_trades,
+                    "win_rate": round(d["stats"].win_rate, 1),
+                } if d["stats"] else None,
+            }
+            for d in calendar_days
+        ],
+        "balance": _serialize_decimal(total_equity),
+        "open_positions": [
+            {
+                "symbol": p.symbol,
+                "side": p.side,
+                "size": _serialize_decimal(p.size),
+                "entry_price": _serialize_decimal(p.entry_price),
+                "mark_price": _serialize_decimal(p.mark_price),
+                "unrealized_pnl": _serialize_decimal(p.unrealized_pnl),
+                "pnl_pct": _serialize_decimal(
+                    (p.unrealized_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
+                ),
+                "leverage": p.leverage,
+                "created_time": p.created_time.isoformat(),
+                "liq_price": _serialize_decimal(p.liq_price) if p.liq_price else None,
+                "position_value": _serialize_decimal(p.position_value) if p.position_value else None,
+            }
+            for p in open_positions
+        ],
+        "total_unrealized": _serialize_decimal(total_unrealized),
+        "total_unrealized_pct": _serialize_decimal(total_unrealized_pct),
+        "testnet": _config.bybit.testnet if _config else True,
+        "today": today.isoformat(),
+        "prev_year": prev_year,
+        "prev_month": prev_month,
+        "next_year": next_year,
+        "next_month": next_month,
+    }
+
+
+@app.get("/api/day/{year}/{month}/{day}")
+async def api_day_detail(year: int, month: int, day: int, tz: str = "utc"):
+    """JSON API for day detail data."""
+    assert pnl_client is not None
+
+    use_utc = tz.lower() != "local"
+    target_date = date(year, month, day)
+
+    balance = pnl_client.get_wallet_balance()
+    total_equity = balance["total_equity"]
+
+    all_trades = pnl_client.get_day_trades(target_date)
+
+    trades_with_pct = []
+    for trade in all_trades:
+        local_entry_time = convert_to_tz(trade.entry_time, use_utc)
+        if local_entry_time.date() == target_date:
+            pnl_pct = (trade.closed_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
+            trades_with_pct.append({
+                "symbol": trade.symbol,
+                "side": trade.side,
+                "closed_pnl": _serialize_decimal(trade.closed_pnl),
+                "pnl_pct": _serialize_decimal(pnl_pct),
+                "entry_time": trade.entry_time.isoformat(),
+                "exit_time": trade.exit_time.isoformat(),
+                "avg_entry_price": _serialize_decimal(trade.avg_entry_price),
+                "avg_exit_price": _serialize_decimal(trade.avg_exit_price),
+                "closed_size": _serialize_decimal(trade.closed_size),
+                "leverage": trade.leverage,
+                "order_type": trade.order_type,
+            })
+
+    trades_with_pct.sort(key=lambda t: t["entry_time"])
+
+    # Open positions
+    all_open = pnl_client.get_open_positions()
+    open_positions = [
+        {
+            "symbol": p.symbol,
+            "side": p.side,
+            "size": _serialize_decimal(p.size),
+            "entry_price": _serialize_decimal(p.entry_price),
+            "mark_price": _serialize_decimal(p.mark_price),
+            "unrealized_pnl": _serialize_decimal(p.unrealized_pnl),
+            "pnl_pct": _serialize_decimal(
+                (p.unrealized_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
+            ),
+            "leverage": p.leverage,
+            "created_time": p.created_time.isoformat(),
+            "liq_price": _serialize_decimal(p.liq_price) if p.liq_price else None,
+            "position_value": _serialize_decimal(p.position_value) if p.position_value else None,
+        }
+        for p in all_open
+    ]
+
+    total_pnl = sum(Decimal(t["closed_pnl"]) for t in trades_with_pct)
+    total_pnl_pct = (total_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
+    winning = [t for t in trades_with_pct if Decimal(t["closed_pnl"]) > 0]
+    losing = [t for t in trades_with_pct if Decimal(t["closed_pnl"]) <= 0]
+    unrealized_pnl = sum(p.unrealized_pnl for p in all_open)
+    unrealized_pnl_pct = (unrealized_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
+
+    return {
+        "date": target_date.isoformat(),
+        "trades": trades_with_pct,
+        "open_positions": open_positions,
+        "total_pnl": _serialize_decimal(total_pnl),
+        "total_pnl_pct": _serialize_decimal(total_pnl_pct),
+        "unrealized_pnl": _serialize_decimal(unrealized_pnl),
+        "unrealized_pnl_pct": _serialize_decimal(unrealized_pnl_pct),
+        "trade_count": len(trades_with_pct),
+        "winning_count": len(winning),
+        "losing_count": len(losing),
+        "win_rate": round(len(winning) / len(trades_with_pct) * 100, 1) if trades_with_pct else 0,
+        "balance": _serialize_decimal(total_equity),
+        "testnet": _config.bybit.testnet if _config else True,
+    }
+
+
 @app.get("/api/positions")
 async def get_positions():
     """API endpoint to get current open positions with live prices."""
@@ -548,6 +719,23 @@ async def debug_raw_api(year: int, month: int):
         }
     except Exception as e:
         return {"error": str(e)}
+
+
+# Serve Angular SPA from /app/ path
+if ANGULAR_DIST.exists():
+    app.mount("/app/assets", StaticFiles(directory=ANGULAR_DIST / "assets"), name="ng-assets") if (ANGULAR_DIST / "assets").exists() else None
+
+    @app.get("/app/{rest_of_path:path}")
+    async def serve_angular(rest_of_path: str):
+        """Serve Angular SPA — static files or fallback to index.html."""
+        from fastapi.responses import FileResponse
+
+        # Try to serve the exact file (js, css, ico, etc.)
+        file_path = ANGULAR_DIST / rest_of_path
+        if rest_of_path and file_path.is_file():
+            return FileResponse(file_path)
+        # SPA fallback: serve index.html for all routes
+        return FileResponse(ANGULAR_DIST / "index.html")
 
 
 def run_server(host: str = "127.0.0.1", port: int = 8000) -> None:

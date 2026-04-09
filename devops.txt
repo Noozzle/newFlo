@@ -1,0 +1,1833 @@
+[
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>• Database connection is established using approved access.</p><p>• SQL DQL query executes successfully without errors.</p><p>• Query results are returned.</p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "367f721b-0575-4daf-b28a-e76c916a72e4",
+                "Name": "Execute SQL query to retrieve data",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Execute a basic SQL DQL queries against an existing database table using an available database client tool. Connect to the database and run the query successfully.</p><p></p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Database engine version information is retrieved.</li><li>Version details are available from a command, query, or client output.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "0ae77d6a-1c8a-457e-b708-bd7b1b192ab0",
+                "Name": "Identify database engine version",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Identify the version of an existing database engine using standard commands, queries, or client features. Retrieve and observe version information.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Database instance is provisioned using standard procedures.</li><li>User access with predefined permissions is configured.              </li><li>Database connectivity is available using the configured access.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "28de1875-f144-4600-8151-1e03928cd2be",
+                "Name": "Provision and configure a database instance",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Provision a database instance using predefined setup procedures and default configuration settings. Create or configure a user account with predefined permissions.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Provisioned and configured NoSQL database instances (e.g., MongoDB, CosmosDB, BigTable) with user accounts, permissions, and accessible connection strings.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "dddc3519-d734-41ef-9885-4fb001688c08",
+                "Name": "Configure and maintain NoSQL Database",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Provision and configure NoSQL databases with appropriate network settings, access controls, and connection parameters. Create and manage application users with required permissions, ensuring secure and efficient database access for workloads.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Configured and maintained SQL-based databases (e.g., MySQL, PostgreSQL, MSSQL, Oracle, CloudSQL, Azure SQL) with appropriate user accounts, permissions, and connectivity.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "48fae0e8-9d31-4021-b6c6-d2ca43c366bd",
+                "Name": "Configure and maintain SQL-based database solutions",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Provision and configure relational database instances with required network and service settings. Create and manage application users, permissions, and connection strings to support reliable data storage and operations.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Senior DevOps Engineer",
+        "JobLevelManagementLevelType": "L3",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Configured database clusters for high availability and load distribution, enabling fault-tolerant and scalable database operations.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "d1126e18-bbc2-425f-b649-7ccb49f6a8cc",
+                "Name": "Configure and maintain database clustering and high availability",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Set up and manage database clusters to ensure high availability, fault tolerance, and load balancing. Implement clustering architectures such as shared-nothing or shared-disk.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>• Automated migration scripts or pipelines that handle schema/configuration and data.</p><p>• Documentation of migration steps, rollback or recovery procedures, and validation checks.</p><p>• Evidence of successful execution of migrations between environments or to a cloud platform.</p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "70926351-db54-45a2-9425-b15c7ec4f1f1",
+                "Name": "Implement and support automated database migration processes",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Implement, improve, and support automated processes for migrating databases across environments or to cloud platforms. Ensure migration workflows include both data and configurations, minimize downtime, and preserve data integrity.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Implemented database tuning measures such as indexing, partitioning, and memory or disk optimizations, resulting in improved performance and scalability.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "65f47349-db39-457a-85c2-2600a81b72fb",
+                "Name": "Perform database tuning and optimization",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Optimize database performance by adjusting infrastructure resources and database configurations, including disk I/O, memory, indexing, partitioning, and replication strategies.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Produced documentation outlining database backup, rollback, and replication strategies, along with a disaster recovery plan to ensure data resilience.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "1c2472a7-750d-42e5-9b82-04ad4e9d73dc",
+                "Name": "Define backup strategy and policies",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Establish and maintain strategies for database backup, restoration, and rollback, ensuring alignment with retention policies and disaster recovery requirements. Incorporate replication, monitoring, and recovery procedures to safeguard critical data.</p>"
+            }
+        ]
+    }
+]
+[
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Documented system maintenance</li><li>Documented data backup and restore procedures</li><li>Documented service availability, customer impact, and recovery procedures</li><li>Documented project&#39;s dependencies</li><li>Documented incident retrospective</li><li>Business continuity and disaster recovery plan</li><li>Implemented and documented deployments roll-back procedure</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "c49b00ba-a8a2-4f05-9fc5-58e6c15137a2",
+                "Name": "Maintain system-level project documentation",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Create, update, and improve system-level project documentation covering areas such as disaster recovery, business continuity, system maintenance, backup and restore, service availability, and incident retrospectives. Ensure documentation reflects current procedures, dependencies, and rollback processes.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Produced disaster recovery documentation and implemented, tested solutions, including backups, replication, and failover processes aligned with defined objectives.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "f8dc8450-ccd4-448c-b70d-5edfcaf3f644",
+                "Name": "Define, document, and oversee disaster recovery solutions",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Design and document disaster recovery strategies that meet Recovery Time Objective (RTO) and Recovery Point Objective (RPO) requirements. Select and implement appropriate approaches such as backup and restore, active/passive, or active/active, and coordinate verification with stakeholders.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Documented script, configuration or task for application or service with setup details, service availability via FQDN, OS-level integration, and configuration stored in version control.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "fc201ca9-67a2-4f16-905e-6e21a7212924",
+                "Name": "Deploy and configure an application or service on OS level",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Set up and configure applications or services at the operating system level, including user and permission management, installation from repositories or binaries, and customized configuration. Ensure services are integrated with OS service management and aligned with project requirements.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Delivered automated maintenance scripts or configurations stored in version control, ensuring reliable updates, rollbacks, and health monitoring for applications or services.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "eefd2e17-42e6-4eca-853f-2f72a1bdfa9f",
+                "Name": "Automate maintenance procedures for applications or services",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Implement automated procedures for maintaining applications or services, including upgrade and rollback scripts with dependency checks and smoke tests. Develop custom health check scripts to verify service functionality and integration with monitoring systems.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Senior DevOps Engineer",
+        "JobLevelManagementLevelType": "L3",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Delivered integrated SDLC toolchain sets with scripts and configurations stored in version control, supported by documentation and task tracking records.</p><p>e.g:</p><ul><li>CI/CD: Github + Jira + Jenkins + Sonarqube + Checkmarx + JFrog Artifactory</li><li>Monitoring and Logging: Prometheus + Grafana, ELK with clustering</li><li>Operational Support: Datadog + PagerDuty, ELK + PagerDuty.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "978b52e0-46b7-4ff0-a936-6c33c5e06569",
+                "Name": " Build and document integrated SDLC toolchains",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Implement and configure a set of applications and services to support one or more phases of the Software Development Life Cycle (SDLC), such as CI/CD, monitoring, logging, or operational support. Document configurations and automation as code for reproducibility and maintainability.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Produced a design document with ecosystem architecture, compliance and interoperability requirements, design justifications, and solution diagrams in standard notations (or provided legend).</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "b4d85a4d-d9cd-4cc8-90ae-06447a244270",
+                "Name": "Lead cross-team design of project services ecosystem",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Collaborate with application, data, security, and other teams to define and refine requirements for the project’s services ecosystem. Design and document solutions that address SDLC needs, third-party dependencies, and service integrations while ensuring compliance and interoperability.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Storage resource is created using predefined parameters.</li><li>Storage resource is available for use.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "ffeb8afe-729e-413c-9549-9a5e30cf9a4b",
+                "Name": "Create a basic storage resource",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Create a basic storage resource such as an object storage container, directory-based file share, or similar storage unit using available tools (web interface, command-line utility, or automation script). Configure essential properties including the resource name, access permissions, and location or path. Confirm that the storage resource has been created successfully and is accessible within the environment.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Created and configured storage services (e.g., buckets, blobs, or files). Any supporting scripts, runbooks, or configuration files to document the setup.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "8cd80d2d-5504-496e-bf07-06ce69ba639a",
+                "Name": "Provision and configure storage services",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Provision cloud or software-defined storage services with the required network and access configurations.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Implemented archiving, versioning, and backup solutions for storage services, supported by automation scripts, pipelines, or built-in service features (e.g., lifecycle policies, cloud backup services).</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "dffc5940-b967-496a-896c-dedb16f58464",
+                "Name": "Implement and manage data archiving and backup strategies",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure and maintain data archiving, backups, and versioning in storage services, ensuring alignment with retention policies and recovery requirements. Use automation tools, pipelines, or scheduling to streamline backup and archive operations.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Network segment is created with the assigned network address range.</li><li>Network segment configuration details are available in the environment.</li><li>Successful attachment of a test instance or device to the network segment is confirmed.</li></ul>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "c8149f6d-f8dc-43e8-b9c2-9000ff8d2378",
+                "Name": "Create a basic network segment",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Create a basic network segment by defining a new subnet or isolated network zone using available system tools, virtualization software, or a network configuration interface. Assign an appropriate network address range and ensure the segment is correctly recognized by the environment. Verify that the network segment is active by checking its configuration details or confirming that a test instance/device can attach to it.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Pre-defined firewall rule is applied to the specified system or virtual machine.</li><li>Firewall configuration reflects the applied rule without changes to unrelated settings.</li><li>Connectivity test confirms that the allowed or blocked traffic behaves as expected.</li></ul>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "a17065a8-9977-4b96-abdc-b73afc631ead",
+                "Name": "Apply a pre-defined firewall rule",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Apply a pre-defined firewall rule to allow or restrict specific traffic on a system or virtual machine using built-in firewall tools or a security configuration interface. Ensure that the rule is applied correctly without modifying unrelated settings. Validate the rule by testing the allowed or blocked traffic to confirm the firewall behaves as expected.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Screenshot or command output showing the network security or routing rule associated with the target resource.</li><li>Configuration details confirming rule scope and direction.</li><li>Evidence of validation, such as a successful or blocked connectivity test, or confirmation that traffic follows the expected route.</li></ul>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "03d7f535-886d-4f22-83bd-9608917964b8",
+                "Name": "Apply pre-defined network security rule",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Apply a pre-defined network security rule (for example, a network security group rule or routing rule) to a specified subnet, network interface, or resource using approved network configuration tools. Ensure the rule is correctly associated without modifying unrelated network settings. Validate the configuration by confirming that the allowed or restricted traffic behaves as expected.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Configured network traffic controls with configured security groups, ACLs, firewall rules, and routes that enforce security policies and regulate traffic flow.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "62f0d3f7-e7d5-4120-bdfe-d312ab97e9f6",
+                "Name": "Configure and manage network traffic controls",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure and manage security groups, ACLs, firewall rules, and routing policies to control inbound and outbound traffic at both instance and subnet levels. Apply port security, protocol filtering, and traffic monitoring.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Deployed and managed virtual network infrastructure with configured subnets, interfaces, and peering, supported by automation and monitoring for ongoing maintenance.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "1bff512f-7279-4dcd-ac8a-59badbf531bf",
+                "Name": "Manage and maintain virtual network infrastructure",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Provision, configure, and maintain virtual networks in the cloud, including components such as subnets, public IPs, and network interfaces.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Implemented secure network connections using cloud-native services and security controls, with documented configurations for private connectivity and traffic protection.</p><p>Configured private connectivity services such as Direct Connect, ExpressRoute, or Cloud Interconnect, alongside firewalls, VPNs, and routing protocols.</p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "ccead8a1-c24a-45e7-a0a8-fda91edd23ba",
+                "Name": "Configure secure connectivity across private and external networks",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Establish secure connectivity between private, and global networks without exposing traffic to the public internet.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Senior DevOps Engineer",
+        "JobLevelManagementLevelType": "L3",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Created and configured load balancing solutions with efficient request distribution and support for features such as SSL offloading and traffic routing.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "184d72b1-e053-4943-8f7c-e69283861a92",
+                "Name": "Implement and manage load balancing solutions",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure and manage load balancers to distribute client requests across multiple application servers using predefined routing algorithms. Apply appropriate load balancing types (e.g., application, network, global, or gateway).</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Documented network segmentation implementation, including defined perimeters, applied controls, risk analysis, performance expectations, and updated configurations.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "b905401b-832d-4d74-a8f7-bb7e67c48030",
+                "Name": "Develop and lead network segmentation implementation",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Define and oversee the implementation of network segmentation strategies. Guide teams in setting perimeters and applying controls with networking components, applications, and identity-based access to ensure proper isolation of resources.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Access to logs via approved tools or interfaces.</li><li>Extracted log entries matching the given criteria.</li><li>Prepared artifact (file, ticket comment, or document) that includes time range used, filter criteria applied, and list or count of matching log entries.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "f1403fb3-8540-463a-8cf8-c2da07fae065",
+                "Name": "Extract and summarize log entries",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Access logs for a specified application, service, or system using approved logging tools or interfaces. Extract log entries matching predefined criteria (for example, error or warning levels, time range, or component). Prepare a short summary of the extracted entries to support operational review or troubleshooting.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Core observability data types are correctly identified.</li><li>Observability data outputs are available from monitoring or logging tools.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "5e513c93-08b3-4792-9b28-410952bfed0b",
+                "Name": "Identify observability data types",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Identify the main types of observability data available in the environment, such as metrics, logs, and traces. Access existing monitoring or logging outputs to view how each data type is represented.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>A trigger configuration is created and linked to an automated workflow or task.</li><li>Trigger activation results in the associated automation starting.</li><li>Trigger configuration is available in the automation system.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "ac3d9b2b-2807-4f59-a280-807490969df4",
+                "Name": "Configure a basic trigger for an automated process",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure a simple trigger that starts an automated workflow or task, such as running a script at a scheduled time or initiating an action when a file changes or becomes available. Define the trigger conditions and link them to the specified automation. Test the setup to confirm that the trigger activates correctly and starts the intended process.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Configured monitoring and log collection for infrastructure resources, providing insights through dashboards and alerts to track performance, availability, and security events.</p><p></p><p>e.g.</p><ul><li>CPU utilization</li><li>Memory utilization</li><li>Disk Read/Write operations</li><li>Network throughput</li><li>Event logs</li><li>Server logs</li><li>System logs</li><li>Authorization logs and access logs</li><li>Changelogs</li><li>Availability logs</li><li>Resource logs</li><li>Threat logs</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "1e17735c-2bfb-45aa-b923-3cc38e222184",
+                "Name": "Configure infrastructure monitoring and logging",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Set up monitoring and logging for core infrastructure components such as CPU, memory, disk operations, and network throughput. Collect and manage logs from multiple sources, and create dashboards or alerts for system performance and security.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Custom metrics set up for existing environment.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "353e71b0-f170-4976-9e6f-37cd4f559bc4",
+                "Name": "Implement and maintain custom metrics for monitoring and logging",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Define, configure, and manage custom metrics to capture application-specific performance and operational data beyond standard monitoring capabilities.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Implemented and documented alert configurations in monitoring and logging systems, covering triggers such as application errors, infrastructure failures, static thresholds, anomaly detection, metric expressions, and composite alarms.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "2ebd5488-f53d-434a-a28d-1c732cce70d2",
+                "Name": "Set up alerts for monitoring and logging services",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure and customize alerts in monitoring and logging systems (cloud or on-premises) to detect issues in applications and infrastructure. Implement thresholds, anomaly detection, composite rules, and other mechanisms to ensure timely and actionable notifications.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Senior DevOps Engineer",
+        "JobLevelManagementLevelType": "L3",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Delivered monitoring dashboards that reflect the real-time state of infrastructure and applications.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "d02afe8d-e1b7-4d24-832a-791bd3fa44cc",
+                "Name": "Develop and maintain monitoring dashboards",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Create and maintain monitoring dashboards to organize metrics and logs into meaningful views and train team members to effectively use dashboards for operational awareness.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Distributed tracing implementation, enabling comprehensive telemetry and tracing collection.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "6b72d2ba-4057-4b9c-9442-ae91ae0d0dbe",
+                "Name": "Implement distributed tracing for observability in distributed systems",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure and integrate distributed tracing solutions using SaaS platforms or tracing tools to capture end-to-end requests across services.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Produced project-level monitoring documentation, including system diagrams, schemas, and updated configurations. Delivered improvements reflecting project requirements, operational goals, and lessons learned during implementation.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "c018e5f4-b026-4363-9318-f13c559090a2",
+                "Name": "Design, implement, and improve monitoring systems aligned with project requirements and operational goals",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Design and oversee the implementation and improvement of monitoring systems at the project level. Define standards for monitoring coverage, guide the team in applying tools and practices, and ensure continuous visibility into project infrastructure and application health, performance, and availability. Align monitoring capabilities with project requirements and operational goals.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Output or screenshots from monitoring tools or system commands.</li><li>Recorded CPU and memory usage data for a defined time window.</li><li>Short written summary (ticket, comment, or note) describing what metrics were collected, when and how they were collected, any visible changes or peaks observed.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "b68a6425-364b-41e0-8aba-0702216e8453",
+                "Name": "Monitor virtual machine resource usage",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Monitor resource usage on a virtual machine (VM) using available system monitoring tools or command-line utilities. Collect and review key performance metrics such as CPU utilization, memory usage, and general system health to understand current operating conditions. Capture the collected data for a defined period and record any noticeable changes or peaks without performing root-cause analysis.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Basic operating system configuration changes are applied successfully.</li><li>System behavior reflects the intended configuration.</li></ul>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "f764b995-b138-4fec-8ebc-dc0327ebc894",
+                "Name": "Perform basic operating system configuration",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Perform basic operating system configuration tasks such as creating a new user account or updating a user’s password. Use either command-line or graphical tools according to system requirements and ensure the changes are applied correctly. Verify the configuration by confirming successful user creation or authentication with updated credentials.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Successful authenticated access to a virtual machine is established.</li><li>Connectivity and permissions are verified without modifying system configuration.</li></ul>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "d1f4c3da-3561-4a52-ad13-da89c0528cdf",
+                "Name": "Verify virtual machine access",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Access a virtual machine using approved connection methods and credentials in accordance with predefined procedures. Confirm that network access and authentication are successful and that a usable session is established.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Successfully created a virtual machine with predefined requirements, including storage, network, access, and security configurations, with the ability to explain each parameter in the provider’s environment.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "0c6a49f5-ce8f-4095-9e52-71c14c016c1c",
+                "Name": "Provision virtual machine with predefined types and images",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Provision a virtual machine using predefined types and images from the provider’s gallery through the console, portal, or automated provisioner. Configure essential components such as authorization, storage, networking, firewall, and access settings as part of the setup.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Created custom machine image which covers the project needs and its demonstrated usage in a project infrastructure. Reconfigured existing images based on the project needs</p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "6721d7b2-3149-4333-8ca6-b2402da01dba",
+                "Name": "Create and manage custom virtual machine images and configurations",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Build and manage custom virtual machine images tailored to project requirements, with necessary configurations, software, and security settings. Maintain and update these images for use across individual virtual machines or scaling groups to support consistent infrastructure deployment.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Produced design and audit documents that capture non-functional requirements and validate their implementation in the compute infrastructure.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "7d0fc8e3-bdf5-4015-aa51-220cafc366e7",
+                "Name": "Define and implement non-functional requirements for compute infrastructure",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Define non-functional requirements such as performance, scalability, reliability, and security for compute infrastructure and incorporate them into design documentation. Apply best practices and conduct regular audits to ensure the implemented infrastructure aligns with these requirements.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Configuration values for a containerized application are updated.</li><li>Container is restarted or recreated using existing procedures.</li><li>Updated configuration is applied in the running application.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "1fe1822d-edd9-4710-90bd-8412d05313f6",
+                "Name": "Update configuration for containerized application",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Update an existing configuration file used by a containerized application by modifying predefined values such as environment variables or port settings. Apply the configuration change by restarting or recreating the container using existing procedures.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Container image is built.</li><li>Container starts successfully from the built image.</li><li>Container execution output is available.</li></ul>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "545946bc-90d4-4a80-bb27-9fd8903f8fff",
+                "Name": "Build and run a basic container image",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Build a simple container image using a base image and a minimal container specification. Run a container from the image to confirm that it starts successfully.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>A Dockerfile is created and stored in a source code management system.</p><p>A custom container image is successfully built from a parent image, pushed to a container registry, and verified to run correctly with port forwarding.</p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "5f3c9305-babc-4d3e-a815-c78cf1fdce75",
+                "Name": "Create and publish custom container image",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Write a Dockerfile that sets up your container for a custom service and install all required dependencies for the application. Build and run the container with port forwarding to validate functionality, and publish the container image to a container registry. </p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Configured monitoring and logging for the сontainerized infrastructure.</li><li>Configured alerting and triggering for the containerized Infrastructure.</li><li>Configured monitoring containers running in Kubernetes (such as K8S, GKE, AKS).</li><li>Configured monitoring containers running in Container Apps (such as Azure Container Apps/Service Fabric/Container Instances, Google Cloud Run).</li><li>Configured monitoring containers running in virtual machine instance.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "ca920658-d8de-43e7-899e-9402ad4bb423",
+                "Name": "Apply observability practices to containerized infrastructure",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Ensure observability of containerized infrastructure by configuring and maintaining monitoring, logging, alerting, and triggering mechanisms. This includes setting up or updating at least two monitoring components to provide visibility into containerized workloads across different environments, ensuring proactive detection and resolution of issues.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Kubernetes manifests for the stack of containers with managed storage (persistent volumes), configured network (IP ranges, ports, etc.), and secrets</p><p>YAML configuration for Docker Compose or similar containing the storage, network, and secrets as mandatory sections.</p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "9b57386d-7403-4025-b4c8-231d3ca992c6",
+                "Name": "Design and manage container stack orchestration",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Create and manage container stacks using manifests or configuration files that define storage, networking, and secrets. Apply orchestration tools such as Kubernetes or Docker Compose to ensure reliable deployment and management of multi-container applications.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Successfully resolved assigned issues related to containerized infrastructure, with documented analysis of container and system logs as well as container resource usage.</p><p>Recommendations for improvements or preventive measures are recorded and linked to work tracking tickets, demonstrating effective problem resolution and infrastructure reliability.</p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "83f64dd4-d7d5-4191-9f2d-6468aa5ec7a4",
+                "Name": "Maintain and troubleshoot containerized infrastructure",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Actively participate in the regular maintenance and troubleshooting of containerized infrastructure, ensuring system stability. This includes identifying, diagnosing, and resolving issues across container runtimes and orchestration platforms, supported by proper documentation and work tracking tickets. A minimum of two to three troubleshooting cases should be completed and evidenced with appropriate records.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Senior DevOps Engineer",
+        "JobLevelManagementLevelType": "L3",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>End-to-end deployment of containerized workloads with rolling update the rollback of the workloads. (i.e. via Helm).</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "6ef3d936-f3cf-4444-ade0-8dd358f1bd49",
+                "Name": "Develop and manage container deployment packages",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Create, maintain, and use versioned deployment packages or components for containerized environments to enable reliable, repeatable, and controlled application delivery. This includes designing deployment strategies that support rolling updates and rollbacks, leveraging tools such as Helm or equivalent package managers, and ensuring consistency and traceability across deployment workflows.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Manifest file including the autoscaling options based on the documented application requirements analysis</p><p>Kubernetes cluster autoscaler configuration based on the requirements of the application. This should also include containers&#39; resource limits configuration.</p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "c420e7ce-d177-4c29-b581-37077b9279f5",
+                "Name": "Implement and manage autoscaling for containerized workloads",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Design, configure, and maintain autoscaling mechanisms for containerized environments. This includes implementing node autoscaling, configuring container resource limits, and enabling container autoscaling based on documented application requirements and workload demand. The solution should adapt dynamically to traffic fluctuations while optimizing resource utilization across different container platforms.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Documented and configured secrets manager integration for containerized environment.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "8fa36b5f-e1bc-40a0-aaba-68e5f3276463",
+                "Name": "Implement and manage secret management for containerized workloads",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Design, configure, and maintain secret management solutions for containerized environments to ensure secure handling of sensitive data such as credentials, tokens, and keys.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Secured, and monitored network traffic between services in a cluster. Configured Load Balancers to secure and connect traffic between containerized services. Created a policy on a service that rate-limit all traffic to a version of a service from a specific origin.</p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "793f6fee-1d6f-4e12-a615-d2466acccd2f",
+                "Name": "Optimize and secure service-to-service network traffic in containerized environments",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Design, configure, and maintain networking solutions to enable secure, efficient, and observable communication between services in containerized environments. This includes implementing container networking (e.g., Docker Compose networking, Kubernetes network plugins, or service meshes), applying traffic management policies, securing connectivity through encryption and access controls, and enabling observability of network flows.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Documented design for the migration of a workload to the containerized environment, that includes:</p><ul><li>Existing infrastructure, all dependencies, and connections with external systems.</li><li>Plan of the target infrastructure.</li><li>Migration plan.</li><li>Testing required.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "71b16fc9-0923-45d3-9551-9a3b747a74a6",
+                "Name": "Plan and execute migration to a containerized environment for scalable and efficient workloads",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Guide the planning and execution of workload migration into a containerized environment.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p><span style=\"background-color: rgb(255, 255, 255); color: rgb(0, 0, 0);\">Retrieved list of user access permissions.</span></p><p><span style=\"background-color: rgb(255, 255, 255); color: rgb(0, 0, 0);\">Prepared artifact (table, document, or ticket comment) that groups permissions by resource or role, highlights permissions not included in the reference scope, is shared with a reviewer.</span></p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "509f6d5f-c344-403f-8e81-642451316931",
+                "Name": "Prepare user access data for least-privilege review",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Prepare a structured representation of access permissions for a user account using approved sources. The prepared data must group permissions by resource or role, highlight permissions outside the predefined access scope, and be submitted to the review stage for further assessment a security owner.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Firewall rules output (command output or screenshots).</li><li>Reference baseline or list of required firewall rules used for comparison.</li><li>Documented result (ticket, table, or comment) that lists required rules, marks them as present or missing, and is shared for further review.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "1b3a362d-7a77-4d96-9f45-96aa75b92651",
+                "Name": "Verify firewall rules against provided baseline",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Inspect the system’s firewall configuration using available tools or interfaces. Compare active firewall rules against a provided baseline or list of required rules. Record which required rules are present and flag missing or disabled rules for review by a security owner.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Generated Secure Shell (SSH) keys for SSH authentication.</li><li>Configured SSH authentication with the ability to login to Linux host using non-root account and escalate own permissions.</li><li>Demonstrated secure login to systems and SCM platforms using SSH keys.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "3b5df4bd-2abe-4722-bf0a-dd5f69a49d95",
+                "Name": "Configure and use secure shell access",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure and use Secure Shell (SSH) to securely access systems and services. This includes generating and managing SSH keys, configuring source code management (SCM) clients, and ensuring secure user access practices.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Configured encryption and data access control measures that protect sensitive data, with documented examples of secure roles, policies, and authentication methods.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "fc4d974b-d73b-4cec-8765-1df68e5c178f",
+                "Name": "Apply secure data encryption and access controls",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Implement security best practices for data by enabling encryption at rest and in transit according to organizational or customer requirements. Restrict access to sensitive data through authentication, authorization, and role-based access controls, complemented by mechanisms such as SSO, MFA, and network access policies.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Script or automation code in any language that demonstrates implementation of at least two secure coding practices, such as:</li><li>Password and secret management (no hardcoded credentials, secure retrieval from vaults or environment variables).</li><li>Access control enforcement in scripts or code.</li><li>Secure error handling and sensitive log suppression.</li><li>Cryptographic practices for data protection (e.g., hashing, encryption).</li><li>Input validation and output encoding.</li><li>Secure handling and cleanup of temporary files or resources.</li><li>Evidence of code inspection or vulnerability scanning integrated into a CI/CD pipeline.</li><li>Evidence of compliance or security checks (e.g., linter, SAST tool, or policy-as-code validation) applied during automation workflows.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "f52ef1b7-24a4-4e66-9636-421a59e8feb8",
+                "Name": "Implement secure coding practices in automation and scripting",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Apply secure coding practices when developing automation scripts and application code to protect confidentiality, integrity, and availability of information. Ensure compliance with security principles by avoiding hardcoded credentials, sanitizing user input, handling errors securely, and using trusted dependencies.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Senior DevOps Engineer",
+        "JobLevelManagementLevelType": "L3",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Delivered pipelines and repository configurations with automated security tests and policies, ensuring continuous monitoring and mitigation of vulnerabilities throughout the development lifecycle.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "ef0b3977-6631-45eb-b2b3-89a9fecffac1",
+                "Name": "Automate security testing in pipelines and repositories",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Integrate automated security checks into CI/CD pipelines and source code repositories to detect vulnerabilities early in the development process. Implement practices such as SAST, DAST, dependency and container scanning, and configure repository security features like access controls, code scanning, and secret detection.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Implemented RBAC policies in at least one system (e.g., cloud IAM, Kubernetes, database, CI/CD, SCM, or equivalent).</li><li>Configuration artifacts or policy definitions showing applied roles and permissions.</li><li>Evidence of access reviews or audits confirming enforcement of least-privilege principles.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "ceda0ce9-d176-4e59-aa93-2c416a2a1291",
+                "Name": "Configure and manage role-based access controls (RBAC)",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure and manage role-based access controls to ensure secure and least-privilege access to systems and services. Define and apply roles and permissions for users, groups, and service identities across infrastructure platforms, cloud environments, and critical tools. Regularly review and adjust access policies to maintain compliance with security best practices.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Implemented firewall and WAF configurations along with traffic monitoring solutions, demonstrating effective protection of web applications and network communication.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "d56f646d-d8e1-424e-b118-c89e32355e35",
+                "Name": "Implement and manage application traffic security controls",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure and maintain security controls for application traffic by applying WAF rules, firewall policies, IDS/IPS systems, and network traffic monitoring. Ensure applications are protected from threats such as unauthorized access, DDoS attacks, and data exposure through proactive filtering and monitoring.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Produced reports and documentation (e.g., architecture diagrams, presentations, or knowledge base entries) that capture identified threats, assessed vulnerabilities, and recommended remediation actions.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "e361c60f-7510-4569-8049-77d62e8016c9",
+                "Name": "Implement and maintain threat and vulnerability management practices",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Identify, assess, and document potential security risks such as spoofing, data tampering, information disclosure, denial of service, and privilege escalation. Collaborate with stakeholders or security teams to evaluate vulnerabilities and define mitigation strategies aligned with project security guidelines.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Structured configuration file (YAML or JSON) is updated with modified parameters.</li><li>Configuration file remains syntactically valid.</li><li>Linter or syntax-checking output is available for the updated file.</li></ul><p></p><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "2baa7333-d60e-45c0-a88d-69d3de9b40c9",
+                "Name": "Update configuration files",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Edit a structured configuration file in YAML or JSON format to update specific parameters such as environment variables, feature flags, or connection settings. Ensure that file structure, indentation, and formatting remain valid after modification to prevent parsing or runtime errors. Validate the updated file with a linter or syntax-checking tool to confirm correctness.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Application is deployed using existing deployment procedures.</li><li>Application runtime status is verified after deployment.</li></ul>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "ad530a4f-8171-4a28-9bfa-3847cff20fe6",
+                "Name": "Deploy a pre-configured application",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Deploy a pre-configured application to a target environment such as a virtual machine, container platform, cloud instance, or local system using existing deployment procedures.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>CI/CD pipeline execution is triggered or re-run using approved parameters.</li><li>Pipeline execution results are verified against the expected outcome (for example, build, tests, or artifact generation).</li><li>Verification result, including pipeline status and reference to execution details or failed stage, is documented in the appropriate tracking or reporting location.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "b230c68d-c817-4835-9e2d-ae546a063c8e",
+                "Name": "Verify CI/CD pipeline execution results",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Trigger or re-run an existing CI/CD pipeline using approved interfaces and predefined parameters. Verify the pipeline execution results by checking stage status and relevant logs to confirm whether the pipeline produced the expected outcome (for example, successful build, test execution, or artifact generation). Document the verification result, including pipeline status and any failed stage reference, in the appropriate tracking or reporting location.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Applied changes to existing CI/CD flows, including: added steps, stages, integrations that align with the original business need.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "28222f6a-3846-4e59-b340-915c9e665432",
+                "Name": "Support existing continuous integration and deployment flows",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Maintain and enhance existing CI/CD flows by updating pipelines, adding new stages or integrations, and adjusting configurations based on evolving project requirements.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Configured CI/CD pipelines from scratch or new flows added including environment-specific flows, integrations, and logic.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "6fe35c10-27d9-410c-aafc-82ac7d399ae1",
+                "Name": "Configure continuous integration and deployment (delivery) flows from scratch",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Set up CI/CD flows from the ground up for multi-environment infrastructures such as Dev, QA, and Prod. Implement pipelines through UI or code to handle builds, artifacts, testing, and deployments.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Set up CI/CD pipelines with artifact versioning stage and release pipeline that support consistent deployments and recovery based on artifact versions.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "63db5016-92a0-40a4-9d04-f932f3e578e0",
+                "Name": "Configure versioning of artifacts during continuous integration flow",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Implement artifact versioning as a mandatory step within the Continuous Integration pipeline. Configure release pipelines to leverage versioned artifacts for controlled deployments and rollback when needed.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Set up CI/CD feedback loops with notifications and build status indicators of pipeline results for development teams.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "861f24b4-083d-4c67-b415-7d195c3125a3",
+                "Name": "Integrate feedback loop into continuous integration and deployment flows",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure automated feedback mechanisms within CI/CD pipelines to provide real-time status updates on build, test, and deployment processes. Implement notifications, status badges, or dashboards to ensure teams are informed of pipeline health and outcomes.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Configured CI/CD flows with third-party integrations, such as</p><ul><li>Regular analysis vie SonarQube.</li><li>Regular analysis vie Checkmarx.</li><li>Ticket status updated based on CI/CD outcome.</li><li>Builds are linked to issue tracking and testing systems.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "b9094f91-31b5-4283-87de-f3cc77812062",
+                "Name": "Integrate third-party services with continuous integration and deployment flows",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Extend CI/CD pipelines by integrating third-party services such as issue tracking systems, artifact repositories, static code analyzers, security scanners, or test report analyzers. Enable automation and visibility by connecting these services directly into build and deployment workflows.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Senior DevOps Engineer",
+        "JobLevelManagementLevelType": "L3",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Implemented and documented a branching strategy (e.g., GitFlow, GitHub Flow, GitLab Flow, or trunk-based development) with supporting CI/CD and VCS configurations.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "4ac4f433-fe41-4dea-8cb0-ad7e7a95730d",
+                "Name": "Adjust a branching strategy",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Define and adjust a branching strategy that aligns with project requirements, team workflows, and release processes. Configure supporting practices such as code review rules and automated branch management within version control systems.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Implemented automated security scans within CI/CD flows, providing actionable insights to identify and remediate vulnerabilities before release. (e.g. SAST, DAST, other)</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "f7c51648-e87c-4707-94ed-19e4217e0cea",
+                "Name": "Integrate automated security scans into continuous integration and deployment (delivery) flows",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Incorporate automated security scanning tools, such as SAST, DAST, or dependency scanners, into CI/CD pipelines to detect vulnerabilities early in the development lifecycle. Ensure scans cover both code and artifacts to enforce security and compliance standards.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Implemented automated environment setup and cleanup within CI/CD pipelines.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "5534c489-d38e-49b0-a66c-a7fcb907bbb0",
+                "Name": "Set up reproducible environments through automation",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Configure automated provisioning and teardown of testing environments with consistency and repeatability.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Delivered documented CI/CD tool adoption plan, implemented workflows, and supporting tasks and stories demonstrating successful integration into project delivery.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "bfe9bae7-37ae-4823-b25d-f2f24dcd0a20",
+                "Name": "Lead adoption and implementation of CI/CD tools and processes based on project needs",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Lead the adoption and implementation of CI/CD tools and processes based on project needs. Align teams on selected tooling, define standards for usage, and oversee integration of CI/CD practices into delivery workflows. Ensure new tools and processes are introduced with clear guidance, training, and supporting documentation.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Produced documentation and updated implementations of CI/CD pipelines, reflecting assessments, evolving requirements, performance improvements, and lessons learned from project delivery.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "bc7ddb83-74d7-4f64-aae5-0e224781207e",
+                "Name": "Lead design and continuous improvement of CI/CD pipelines and processes",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Lead the design and continuous improvement of CI/CD pipelines and processes. Define and refine build, release, and deployment flows to meet evolving business and project needs. Incorporate feedback, metrics, and best practices to enhance efficiency, reliability, and security of delivery pipelines.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>A simple automation script performs the intended basic task.</li><li>Script execution completes successfully without errors.</li></ul>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "bec25afe-f18f-4004-9d00-640d2c25ae1f",
+                "Name": "Write basic automation script",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Create a simple automation script using a scripting language such as Bash, Python, or PowerShell to perform a basic task - for example, listing files in a directory, printing the current date, or displaying system information. Ensure the script is clearly formatted, includes helpful comments, and runs without errors. Test the script to confirm it produces the expected output and completes successfully.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Updated script executes successfully with expected behavior.</li><li>Updated script output is available.</li></ul>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "233a8201-9f3b-436a-b352-9395cbe0c0dc",
+                "Name": "Modify existing automation script",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Modify an existing automation script by applying limited, scoped changes based on provided input or feedback, such as correcting syntax errors or adding a parameter. Preserve the original purpose and structure of the script.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>IDE installed with required language extensions enabled.</li><li>Configured interpreter or runtime visible in IDE settings.</li><li>Screenshot or output showing a script executed successfully from the IDE.</li><li>Configuration screenshots for linting or run/debug setup.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "34848210-62e8-430f-8225-4bbc8f5b4179",
+                "Name": "Prepare IDE for basic development",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Install an IDE suitable for scripting tasks and add required language support. Configure the runtime or interpreter path, enable basic linting or formatting, and set up a simple run or debug configuration. Validate the setup by creating or opening a sample script and executing it successfully from within the IDE.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Updated scripts committed to version control and applied in operational workflows or pipelines, showing fixes or enhancements that improved reliability and supported operational needs.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "980ae786-b6f6-4358-aabf-52c276dd463c",
+                "Name": "Maintain and fix automation scripts for routine DevOps tasks",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Maintain and troubleshoot existing automation scripts used for routine DevOps activities. Apply fixes or enhancements to improve reliability, adapt to changing requirements, and ensure continued functionality.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Automation scripts (e.g., Bash, Python, PowerShell) committed to version control and used in operational workflows or pipelines, demonstrating automation of routine DevOps tasks.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "65ddfdba-7bfc-44e0-9d76-0b1f3276b7e1",
+                "Name": "Write scripts to automate routine DevOps tasks",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Develop simple scripts to automate routine DevOps activities such as file management, log analysis, or text processing. Ensure scripts are reusable, documented, and applied consistently in daily operational workflows or pipelines.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Configured IDEs and development tools with debugging, syntax highlighting, and formatting features.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "163d4ae6-af32-469d-99bb-bf1ec3d4713f",
+                "Name": "Configure development environments and tooling for DevOps workflows",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Set up and configure development environments and IDEs to support DevOps scripting and automation, including debugger integration, syntax highlighting, and code formatting.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Automation scripts committed to version control and used in operational workflows or pipelines, demonstrating control structures (loops, conditionals, input validation, error handling) aligned with infrastructure and operational requirements.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "0c6d006f-6ad9-4422-a84d-ddc2ade5ac6f",
+                "Name": "Write automation scripts for infrastructure and operations",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Develop and maintain scripts to automate infrastructure and operational tasks using scripting or programming languages. Apply imperative constructs such as loops, conditionals, error handling, and input validation to improve functionality, reliability, and adaptability.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Created and executed query scripts integrated into operational or automation tasks, such as:</p><ul><li>log analytics systems</li><li>audit logging systems</li><li>message queues</li><li>SQL/NoSQL databases</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "4774020f-2fa4-425f-a6a9-301ff0fbafa9",
+                "Name": "Write query scripts for operational and automation tasks",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Develop query scripts to retrieve, analyze, or manage data across SQL/NoSQL databases, analytics platforms, and logging systems. Apply query languages to integrate data handling into operational or automation workflows.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Senior DevOps Engineer",
+        "JobLevelManagementLevelType": "L3",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Delivered advanced query scripts that fulfilled project-level operational requirements (e.g., joins, aggregations, multi-source queries), integrated into infrastructure or operational workflows, and tracked through project tasks or tickets.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "25c669a2-46bb-4aec-8983-249304ebb277",
+                "Name": "Apply advanced query techniques to support infrastructure and operational tasks",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Write and optimize complex queries using advanced techniques (e.g., joins, conditionals, aggregations, pattern matching, filtering) across SQL/NoSQL databases, analytics platforms, and logging systems. Use these queries to support infrastructure operations, troubleshooting, and performance analysis at the project level.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Automation scripts with structured logging committed to version control and used in operational workflows or pipelines, providing meaningful logs (levels, configuration) for debugging and monitoring.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "1a3057cd-87b3-40de-be51-c77321376fbb",
+                "Name": "Implement structured logging in automation and infrastructure scripts",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Enhance automation and infrastructure scripts with structured logging. Apply multiple log levels, configurable settings, and clear documentation to provide meaningful insights for debugging, monitoring, and maintaining scripts in different environments.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Refactored scripts committed to version control and applied in operational workflows or pipelines, demonstrating improvements such as validation, testing, linting, and enhanced maintainability.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "b9c4669d-20d6-4741-a2b3-4c470abdf80a",
+                "Name": "Perform refactoring and re-engineering of DevOps scripts and tools to improve quality, reliability, and maintainability",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Refactor and enhance DevOps scripts and tools to align with project coding standards and best practices. Apply improvements such as input validation, output verification, unit testing, and linting to ensure quality, reliability, and maintainability.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Documented review comments in version control or task tracking systems.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "1b5a85de-4e2a-4136-9ca1-cddf3601952e",
+                "Name": "Review pull requests across the team to ensure code quality and standards compliance",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Participate in the review of pull/merge requests to validate code quality, adherence to standards, and alignment with project requirements. Provide constructive feedback through version control platforms or ticketing systems to support continuous improvement.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Produced solutions implemented in multiple languages(Python, Bash, Powershell, Groovy, Java, Golang, etc.), demonstrating flexibility and adaptability in DevOps automation.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "6ac3bef3-525a-4d03-a8b4-afc7ba33acea",
+                "Name": "Use multiple programming and scripting languages in DevOps solutions",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Apply more than one programming or scripting language to develop automation scripts and DevOps tools. Leverage the strengths of different languages (e.g., Python, Bash, PowerShell, Groovy, Golang) to address diverse project needs and workflows.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Structured automation scripts (functions, classes, objects) committed to version control and used in operational workflows or pipelines, demonstrating adherence to vendor guidelines and best practices.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "467e5f76-aa13-4060-846b-b0f73bdfa736",
+                "Name": "Write complex automation and scripts following best practices and vendor guidelines",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Develop or refactor scripts for complex automation tasks using functions, objects, or classes where applicable. Follow vendor guidelines and best practices to ensure readability, maintainability, and long-term supportability.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Automation scripts or shared library components committed to version control and used in operational workflows or pipelines, demonstrating application of programming patterns (e.g., singleton, decorator, adapter) with supporting documentation promoting adoption within the project.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "48802fe2-ff4b-4140-9925-c01f56b8fe7f",
+                "Name": "Implement and promote programming patterns in DevOps solutions",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Apply recognized programming patterns (e.g., singleton, proxy, decorator, adapter) in DevOps scripts and automation solutions. Promote their adoption to improve consistency, maintainability, and scalability across project-level automation.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Implemented code review policies and documentation, including review rules and branching strategies, enforced through version control platforms.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "16513fb1-0c78-4a63-a3a2-f924bec932f1",
+                "Name": "Lead code review process for DevOps teams",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Establish and maintain a structured code review process for DevOps and automation-related code. Define rules such as minimum approvers, branching strategies, and coding standards, while documenting best practices to ensure quality and consistency.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Predefined automation is executed.</li><li>Configuration change is applied by the automation.</li><li>Automation execution output is available.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "74284852-e1db-4bac-9ad4-68e0932832fd",
+                "Name": "Execute automated configuration change",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Execute a predefined automation script or tool to apply a configuration change to a target system or environment. Run the automation with required input parameters without modifying automation logic or templates. As a result, the configuration change is applied by the automation.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Infrastructure resource is provisioned or updated using an existing template.</li><li>Provisioning execution output is available.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "fab14043-77fb-4c41-bce9-84c988270d5c",
+                "Name": "Provision resource from a template",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Provision or update an infrastructure resource using an existing template and predefined input parameters by executing an automation command, playbook, or script.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<ul><li>Output from an infrastructure automation run (plan or apply).</li><li>Visible list of planned or applied infrastructure changes.</li><li>Written summary (ticket, comment, or document) that includes execution type (plan or apply), affected resources, and confirmation that the output was reviewed.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "e83639ce-a098-43cd-8bb1-d467b52b6e0e",
+                "Name": "Review and record IaC execution results",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Review the output of an infrastructure automation run executed using an Infrastructure as Code (IaC) tool. Examine execution results to identify planned or applied infrastructure changes. Record a concise summary of the execution output, including affected resources and execution type, to support verification and change tracking, ensuring intended changes have been made.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Maintained automated configuration code under version control, validated and applied reproducible configurations, provided documentation and troubleshooting support with ad-hoc commands.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "743bc58b-8ea4-4890-b968-ce340849eb2d",
+                "Name": "Maintain and support automated infrastructure configuration in project environments",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Support automated configuration of infrastructure by maintaining and updating configuration management files, templates, and roles. Ensure environments remain consistent and reproducible through automation tools such as Ansible, Puppet, Chef, or Terraform.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Maintained configuration files in version control with release tags and versioned artifacts, enabling traceability and rollback when needed.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "0cbc9115-7a5f-40a3-84ff-b7c066d3d67d",
+                "Name": "Store and manage configuration files in version control systems for infrastructure code",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Store infrastructure and configuration management code in version control systems for tracking, collaboration, and rollback of changes. Apply versioning practices such as tagging releases.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Delivered IaC configurations (e.g., Terraform modules, Ansible playbooks, or equivalent) with supporting documentation to provision and manage basic infrastructure environments.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "732925cb-5512-4a46-b56d-c7a3205ab492",
+                "Name": "Use infrastructure as code tools to provision basic infrastructure",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Provision the minimum viable version of cloud or on-premises environments using infrastructure-as-code tools such as Terraform, Ansible, or equivalent. Deploy core infrastructure components (e.g., networks, compute, storage, and databases) through reusable modules and document automation practices.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Configured secret management with encrypted variables and RBAC policies, ensuring least privilege access to sensitive data within automated provisioning and configuration processes.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "2ad759b3-25ce-4b36-b1b3-707523fd99cb",
+                "Name": "Use secret management tool while using automated configuration and provisioning infrastructure",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Integrate secret management tools such as Ansible Vault, HashiCorp Vault, or cloud-native secret management services into infrastructure-as-code workflows. Ensure secrets are encrypted, securely stored, and accessed only according to the principle of least privilege.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Senior DevOps Engineer",
+        "JobLevelManagementLevelType": "L3",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Delivered architecture diagrams, CI/CD schemas, and documented tasks reflecting contributions to configuration management design and implementation.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "b6372d48-0520-4ae6-acb4-8f120e667c87",
+                "Name": "Contribute to design and architecture of configuration management systems",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Participate in the design and architecture of configuration management systems by creating infrastructure diagrams, schemas, and CI/CD workflows for applying configuration changes. Collaborate with teams to align design decisions with current state, project needs, and automation best practices.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Developed and tested automated HA and DR plans using IaC tools, with documentation detailing recovery steps, timelines, and configuration practices.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "54e86d5b-34d3-4f11-8274-2d6461e8ebba",
+                "Name": "Implement automated availability and disaster recovery using infrastructure as code",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Implement high availability (HA) and disaster recovery (DR) strategies through infrastructure-as-code and configuration management tools. Automate provisioning, validation, and recovery processes while ensuring changes are tested and aligned with defined RTO and RPO objectives.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Delivered implementation plans and documentation, with tasks and stories tracked for automated configuration and provisioning.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "a8414f54-dc05-46da-a185-57f5169e33e3",
+                "Name": "Lead implementation of automated configuration management and infrastructure provisioning",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Oversee and guide the implementation of infrastructure-as-code solutions for automated configuration and provisioning. Delegate tasks to team members, manage stories and epics, and ensure alignment of solutions with project goals and stakeholder requirements.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Produced audit reports and transition plans outlining current and target states, with documented improvements such as repository refactoring, modularization, and secure configuration practices.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "86527c9f-6f03-4d84-8d84-4f1878bbaf7a",
+                "Name": "Conduct audits to identify improvement areas in automated provisioning and configuration management",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Perform audits of infrastructure-as-code and configuration management practices to detect inefficiencies, compliance gaps, and areas for optimization. Document findings, propose improvements, and work with teams to refine IaC structures, secure secrets, and enhance automation reliability.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Trainee DevOps Engineer",
+        "JobLevelManagementLevelType": "L0",
+        "IsJobLevelNew": true,
+        "ReviewJobs": [
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Work items are updated in the tracking system.</li><li>Task status and descriptions reflect current progress.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "98340b33-d15e-46ce-9cb7-aaf7e6bb2bfc",
+                "Name": "Update work items according to process",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Ensure that assigned work items in the tracking system accurately represent the current state of the work so they can be reliably used by the team. Update task status, fields, and descriptions in accordance with the defined workflow and team conventions, providing sufficient context about progress, recent changes, and next steps to support collaboration, planning, and reporting.</p>"
+            },
+            {
+                "IsNew": true,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<ul><li>Task scope and expected outcomes are clarified.</li><li>Missing or unclear task details are documented in the work item.</li><li>Work item information is updated to reflect the clarified scope.</li></ul><p></p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "98cb107a-e047-47c7-9347-e049b72c590b",
+                "Name": "Clarify task scope and acceptance criteria",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Ensure that assigned work items contain clear and actionable information required to start and complete the task. Review task scope, constraints, dependencies, and acceptance criteria, and document clarifications directly in the work item so that the task meets the team’s definition of ready and can be implemented without avoidable rework or follow-up questions.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Estimated personal work items documented in tracking tools according to project requirements and DevOps practices.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "f9d94994-2a10-4af4-bb0e-a3a7e9f50a27",
+                "Name": "Apply estimation techniques for personal work items",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Use appropriate estimation techniques to evaluate the effort and time required for DevOps tasks. Provide clear justifications for chosen estimates and record them in project tracking systems or boards.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "Outcomes": "<p>Documented work items in task tracking systems or boards.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "7b73b02f-1bb2-4f2a-83c9-a1a32ef55313",
+                "Name": "Clarify and formalize requirements for your work items",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Gather, clarify, and document requirements for assigned tasks to ensure alignment with project goals and expectations. Define task details in a clear and structured format to support effective execution and tracking.</p>"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Implemented team-wide estimation practices with tasks consistently including estimation values.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "7fa9b63b-8dcc-4026-8dde-bf1ee717bbbc",
+                "Name": "Implement and maintain estimation practices across the team",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Establish and support estimation procedures for project-related tasks by applying standardized techniques. Ensure consistency and accuracy in effort estimation to improve planning, predictability, and team alignment.</p>"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "Outcomes": "<p>Produced performance reports or boards showing team capacity and velocity, enabling data-driven analysis of operational efficiency.</p>",
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "e5f99de6-bd8e-4ad6-b5a7-b48ee582f1ed",
+                "Name": "Track and analyze operational performance of the team",
+                "GradeId": "00000000-0000-0000-0000-000000000000",
+                "Description": "<p>Collect and evaluate performance metrics to monitor the team’s capacity, velocity, and delivery efficiency.</p>"
+            }
+        ]
+    }
+][
+    {
+        "JobLevelName": "Junior DevOps Engineer",
+        "JobLevelManagementLevelType": "L1",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "f47ccfe2-b2dc-4c36-8645-1388a2321d4b",
+                "Name": "Work with a mentor as a mentee",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Middle DevOps Engineer",
+        "JobLevelManagementLevelType": "L2",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "b55a2961-f25c-43cc-906c-02fe6c00d66a",
+                "Name": "Conduct a performance review for Trainee level",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "276c91c8-c88d-4655-888f-ceb47a061013",
+                "Name": "Mentor Trainee and Junior level engineers",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Senior DevOps Engineer",
+        "JobLevelManagementLevelType": "L3",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "78c70cde-9fa3-40cb-a286-a1420e1cdeeb",
+                "Name": "Conduct a performance review for Junior level",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "1a50671f-ba88-4758-8859-717bafb79ada",
+                "Name": "Conduct a technical interview up to Senior level",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "da47c097-9940-4c4d-9a00-61c9cbcccf79",
+                "Name": "Conduct company-wide presentations or trainings",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "81fca465-0162-4430-8b7c-26a09b9fa452",
+                "Name": "Implement any DevOps tasks in SoftServe Open Source, OpenTech, or IT Academy social projects",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "f9d18b5d-aebf-4b17-bdd5-445f568662e8",
+                "Name": "Mentor engineers up to Senior level",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            }
+        ]
+    },
+    {
+        "JobLevelName": "Lead DevOps Engineer",
+        "JobLevelManagementLevelType": "L4",
+        "IsJobLevelNew": false,
+        "ReviewJobs": [
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": true,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "0ed499e8-ef76-4270-9817-6f416c537a93",
+                "Name": "Conduct a performance review for Middle+ level engineers",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "3b25f2bf-a159-4c6f-aa37-c6f35c4ed175",
+                "Name": "Conduct a technical interview for engineers up to Lead level",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "27b95fee-11d8-44a1-a3c1-b33973924874",
+                "Name": "Implement any DevOps tasks in SoftSe вrve Open Source, OpenTech, or IT Academy social projects as a Tech Lead",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            },
+            {
+                "IsNew": false,
+                "EvaluationMarks": [],
+                "IsKey": false,
+                "LearningResources": [],
+                "Skills": [],
+                "Id": "a0e772af-3d7a-497e-a7d9-e0785ec40b46",
+                "Name": "Mentor engineers up to Lead level",
+                "GradeId": "00000000-0000-0000-0000-000000000000"
+            }
+        ]
+    }
+]
