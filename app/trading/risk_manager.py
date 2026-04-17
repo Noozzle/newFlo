@@ -158,6 +158,22 @@ class RiskManager:
         if dd_scale < Decimal("1"):
             logger.info(f"DD risk scaling: {dd_scale} (DD={self._portfolio.drawdown:.1f}%)")
 
+        # Apply AI-gate risk_scale (SKIP=0.0, HALF=0.5, FULL=1.0) from signal metadata.
+        try:
+            gate_scale = Decimal(str(signal.metadata.get("risk_scale", 1.0)))
+        except (TypeError, ValueError, ArithmeticError):
+            gate_scale = Decimal("1")
+        if gate_scale <= Decimal("0"):
+            return SizeResult(
+                approved=False,
+                size=Decimal("0"),
+                risk_amount=Decimal("0"),
+                reason="AI gate: risk_scale=0 (SKIP)",
+            )
+        if gate_scale < Decimal("1"):
+            logger.info(f"AI gate risk scaling: {gate_scale}")
+        risk_amount = risk_amount * gate_scale
+
         # Size = risk_amount / risk_per_unit
         size = risk_amount / risk_per_unit
 

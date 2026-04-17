@@ -694,6 +694,11 @@ class OrderflowStrategy(BaseStrategy):
                 else:
                     break
 
+        # Normalized trend strength in [0, 1] (count / trend_candles capped).
+        # PR-2 may replace with |net move|/(ATR*sqrt(N)) over a 15m window.
+        trend_norm_base = max(int(self._trend_candles), 1)
+        trend_strength_norm = min(1.0, float(trend_strength) / float(trend_norm_base))
+
         metadata = {
             # New features matching model/config.json
             "rel_spread": rel_spread,
@@ -706,6 +711,13 @@ class OrderflowStrategy(BaseStrategy):
             "close_minus_ma20_15m": close_minus_ma20_15m,
             "trend_slope_15m": trend_slope_15m,
             "hour_utc": hour_utc,
+            # Rules-gate features (None = warm-up / not yet available, rule is skipped).
+            # Heavier rolling features (24h range compression, 7d ATR rank, cost ratio)
+            # will be populated in PR-2 once deques/costs are wired.
+            "range_compression_24h": None,
+            "atr_rank_7d": None,
+            "cost_ratio": None,
+            "trend_strength_norm": trend_strength_norm,
             # Legacy features
             "volume_imbalance": volume_imbalance,
             "atr_pct": atr_pct,

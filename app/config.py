@@ -133,6 +133,41 @@ class StrategyParams(BaseModel):
     )
 
 
+class GateRulesConfig(BaseModel):
+    """Rules-based gate configuration (runs BEFORE ML predict).
+
+    Each rule is skipped silently if its dependent feature is None/missing
+    (safe default — warm-up periods won't block trading).
+    """
+    enabled: bool = Field(default=False, description="Enable rules layer (independent from ai_gate.enabled)")
+    range_compression_kill_min: float = Field(
+        default=0.0018, description="Lower bound of range_compression kill-zone (SKIP)"
+    )
+    range_compression_kill_max: float = Field(
+        default=0.0022, description="Upper bound of range_compression kill-zone (SKIP)"
+    )
+    whitelist_symbols: list[str] = Field(
+        default_factory=lambda: ["SUIUSDT"],
+        description="Symbols allowed without strict trend strength filter",
+    )
+    non_whitelist_min_trend: float = Field(
+        default=0.6, description="Min trend_strength for non-whitelisted symbols"
+    )
+    cost_ratio_skip: float = Field(
+        default=0.25, description="SKIP when cost_ratio exceeds this"
+    )
+    half_hours_utc: list[int] = Field(
+        default_factory=lambda: [13, 15, 17, 18],
+        description="Hours (UTC) where risk is halved",
+    )
+    atr_rank_hivol: float = Field(
+        default=0.6, description="atr_rank threshold classifying hi-vol regime"
+    )
+    trend_strength_weak: float = Field(
+        default=0.3, description="Weak trend_strength cutoff (used with hivol HALF rule)"
+    )
+
+
 class AIGateConfig(BaseModel):
     """AI gate configuration."""
     enabled: bool = Field(default=True, description="Enable AI gate")
@@ -142,6 +177,7 @@ class AIGateConfig(BaseModel):
     fallback_action: str = Field(default="full", description="Action when model unavailable: full or half")
     log_signals: bool = Field(default=True, description="Log signals for training data")
     log_path: str = Field(default="gate_signals.csv", description="Signal log path")
+    rules: GateRulesConfig = Field(default_factory=GateRulesConfig)
 
 
 class StrategyConfig(BaseModel):

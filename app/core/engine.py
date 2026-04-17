@@ -102,6 +102,7 @@ class Engine:
                 fallback_action=gate_cfg.fallback_action,
                 log_path=gate_cfg.log_path if gate_cfg.log_signals else None,
                 enabled=gate_cfg.enabled,
+                rules_config=gate_cfg.rules,
             )
         except Exception:
             self._ai_gate = AIGate(enabled=False)

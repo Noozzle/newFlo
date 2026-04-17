@@ -1,5 +1,5 @@
-npx skills add analogjs/angular-skills@angular-signals -y
-npx skills add analogjs/angular-skills@angular-forms -y
-npx skills add analogjs/angular-skills@angular-routing -y
-npx skills add analogjs/angular-skills@angular-http -y
-npx skills add vercel-labs/agent-skills@web-design-guidelines -y
+  1. Stale-exit — дозволяємо чи виносимо окремо?   Це що?
+  2. range_compression — UTC-добовий чи rolling 24h? це що?
+  3. atr_rank_7d fallback при warm-up — 0.5?  - поясни як впливає
+  4. Whitelist "привілейованих" символів — статично {SUIUSDT} чи з конфігу? - це з конфігу, також поясни що таке "привілейовані"
+  5. Mode rules+ml — rules роблять SKIP, ML вирішує HALF/FULL — OK? - це що? МЛ зараз же ж відключена , хіба ні?

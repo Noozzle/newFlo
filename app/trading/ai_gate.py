@@ -27,6 +27,7 @@ from typing import TYPE_CHECKING
 from loguru import logger
 
 if TYPE_CHECKING:
+    from app.config import GateRulesConfig
     from app.trading.signals import EntrySignal
 
 
@@ -104,6 +105,7 @@ class AIGate:
         fallback_action: str = "full",
         log_path: str | Path | None = None,
         enabled: bool = True,
+        rules_config: "GateRulesConfig | None" = None,
     ) -> None:
         self._model = None
         self._model_version: str | None = None
@@ -113,6 +115,7 @@ class AIGate:
         self._fallback = GateAction(fallback_action)
         self._log_path = Path(log_path) if log_path else None
         self._log_initialized = False
+        self._rules_config = rules_config
 
         # Config-driven features (loaded from model/config.json)
         self._feature_list: list[str] | None = None
@@ -164,7 +167,7 @@ class AIGate:
 
     def _predict(self, feature_vec: list[float]) -> tuple[float, float | None]:
         """Run model inference. Returns (p_win, expected_r)."""
-        import numpy as np
+        assert self._model is not None, "_predict called without loaded model"
         X = [feature_vec]
         p_win = float(self._model.predict_proba(X)[0, 1])
         # expected_R = p_win * RR - (1-p_win); with RR=3.0 by convention
@@ -237,6 +240,77 @@ class AIGate:
 
         self._log_initialized = True
 
+    # ── Rules layer (runs BEFORE ML) ──
+
+    @staticmethod
+    def _feat(features: dict, name: str) -> float | None:
+        """Get a numeric feature or None if missing / not finite."""
+        if name not in features:
+            return None
+        v = features[name]
+        if v is None:
+            return None
+        try:
+            fv = float(v)
+        except (TypeError, ValueError):
+            return None
+        if not math.isfinite(fv):
+            return None
+        return fv
+
+    def _apply_rules(
+        self,
+        features: dict,
+        symbol: str,
+        hour_utc: int,
+    ) -> GateDecision | None:
+        """Apply rules-based gate. First match wins.
+
+        Returns None if no rule matched (caller should proceed with ML / fallback).
+        Rules that depend on a missing feature are skipped silently.
+        """
+        cfg = self._rules_config
+        if cfg is None or not getattr(cfg, "enabled", False):
+            return None
+
+        # 1) kill-zone range_compression → SKIP
+        rc = self._feat(features, "range_compression_24h")
+        if rc is None:
+            rc = self._feat(features, "range_compression")  # fallback name
+        if rc is not None and cfg.range_compression_kill_min <= rc <= cfg.range_compression_kill_max:
+            return GateDecision(action=GateAction.SKIP, reason="kill_zone_range_compression")
+
+        # 2) non-whitelist symbol + weak trend → SKIP
+        trend = self._feat(features, "trend_strength_norm")
+        if trend is None:
+            trend = self._feat(features, "trend_strength")  # fallback name
+        if trend is not None and symbol not in (cfg.whitelist_symbols or []):
+            if trend < cfg.non_whitelist_min_trend:
+                return GateDecision(action=GateAction.SKIP, reason="non_whitelist_weak_trend")
+
+        # 3) cost drag → SKIP
+        cost_ratio = self._feat(features, "cost_ratio")
+        if cost_ratio is not None and cost_ratio > cfg.cost_ratio_skip:
+            return GateDecision(action=GateAction.SKIP, reason="cost_drag")
+
+        # 4) bad hour UTC → HALF
+        if hour_utc in (cfg.half_hours_utc or []):
+            return GateDecision(action=GateAction.HALF, reason="bad_hour_utc")
+
+        # 5) hivol + weak trend → HALF
+        atr_rank = self._feat(features, "atr_rank_7d")
+        if atr_rank is None:
+            atr_rank = self._feat(features, "atr_rank")  # fallback name
+        if (
+            atr_rank is not None
+            and trend is not None
+            and atr_rank >= cfg.atr_rank_hivol
+            and trend < cfg.trend_strength_weak
+        ):
+            return GateDecision(action=GateAction.HALF, reason="hivol_weak_trend")
+
+        return None
+
     # ── Public API ──
 
     async def decide(self, signal: "EntrySignal") -> GateDecision:
@@ -248,6 +322,20 @@ class AIGate:
         Returns:
             GateDecision with action, p_win, expected_r, model_version, reason.
         """
+        # Rules layer is independent from self._enabled (ML can be off, rules on).
+        try:
+            hour_utc = int(signal.metadata.get("hour_utc", signal.timestamp.hour))
+        except (TypeError, ValueError):
+            hour_utc = signal.timestamp.hour
+        rules_decision = self._apply_rules(signal.metadata, signal.symbol, hour_utc)
+        if rules_decision is not None:
+            logger.info(
+                f"AI gate rules: {signal.symbol} {signal.side.value} "
+                f"→ {rules_decision.action.value} ({rules_decision.reason})"
+            )
+            self._log(signal, rules_decision)
+            return rules_decision
+
         if not self._enabled:
             return GateDecision(action=GateAction.FULL, reason="gate disabled")
 
