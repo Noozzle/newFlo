@@ -39,11 +39,10 @@ def convert_to_tz(dt: datetime, use_utc: bool = True) -> datetime:
 import asyncio
 import json
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from loguru import logger
 
 from app.config import Config
@@ -52,8 +51,6 @@ from app.ui.models import DayStats, MonthData
 
 # Setup paths
 UI_DIR = Path(__file__).parent
-TEMPLATES_DIR = UI_DIR / "templates"
-STATIC_DIR = UI_DIR / "static"
 # Angular build: check browser/ subfolder (production) or flat (dev)
 _ng_base = Path(__file__).parent.parent.parent / "flotrader-ui" / "dist" / "flotrader-ui"
 ANGULAR_DIST = _ng_base / "browser" if (_ng_base / "browser").exists() else _ng_base
@@ -69,12 +66,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Mount static files
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
-# Setup templates
-templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 # Global client (initialized on startup)
 pnl_client: BybitPnLClient | None = None
@@ -176,155 +167,6 @@ def get_calendar_data(year: int, month: int, use_utc: bool = True) -> tuple[Mont
                 })
 
     return month_data, calendar_days
-
-
-@app.get("/", response_class=HTMLResponse)
-async def calendar_view(
-    request: Request,
-    year: int | None = None,
-    month: int | None = None,
-    tz: str = "utc",  # "utc" or "local"
-) -> HTMLResponse:
-    """Render calendar view for specified month."""
-    use_utc = tz.lower() != "local"
-    today = get_today(use_utc)
-    year = year or today.year
-    month = month or today.month
-
-    # Validate month
-    if month < 1 or month > 12:
-        month = today.month
-
-    # Calculate prev/next month
-    if month == 1:
-        prev_year, prev_month = year - 1, 12
-    else:
-        prev_year, prev_month = year, month - 1
-
-    if month == 12:
-        next_year, next_month = year + 1, 1
-    else:
-        next_year, next_month = year, month + 1
-
-    # Get data
-    month_data, calendar_days = get_calendar_data(year, month, use_utc)
-
-    # Get balance and open positions
-    balance = pnl_client.get_wallet_balance() if pnl_client else {"total_equity": Decimal("0")}
-    total_equity = balance["total_equity"]
-
-    open_positions = pnl_client.get_open_positions() if pnl_client else []
-    total_unrealized = sum(p.unrealized_pnl for p in open_positions)
-    total_unrealized_pct = (total_unrealized / total_equity * 100) if total_equity > 0 else Decimal("0")
-
-    # Add % PnL to positions
-    open_positions_with_pct = []
-    for pos in open_positions:
-        pnl_pct = (pos.unrealized_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
-        open_positions_with_pct.append({
-            "position": pos,
-            "pnl_pct": pnl_pct,
-        })
-
-    return templates.TemplateResponse(
-        "calendar.html",
-        {
-            "request": request,
-            "month_data": month_data,
-            "calendar_days": calendar_days,
-            "today": today,
-            "prev_year": prev_year,
-            "prev_month": prev_month,
-            "next_year": next_year,
-            "next_month": next_month,
-            "testnet": _config.bybit.testnet if _config else True,
-            "use_utc": use_utc,
-            "tz": tz.lower(),
-            "open_positions": open_positions_with_pct,
-            "total_unrealized": total_unrealized,
-            "total_unrealized_pct": total_unrealized_pct,
-            "balance": total_equity,
-        },
-    )
-
-
-@app.get("/day/{year}/{month}/{day}", response_class=HTMLResponse)
-async def day_detail(
-    request: Request,
-    year: int,
-    month: int,
-    day: int,
-    tz: str = "utc",
-) -> HTMLResponse:
-    """Render detailed view for a specific day."""
-    assert pnl_client is not None
-
-    use_utc = tz.lower() != "local"
-    target_date = date(year, month, day)
-
-    # Get current balance for % calculations
-    balance = pnl_client.get_wallet_balance()
-    total_equity = balance["total_equity"]
-
-    # Fetch trades
-    all_trades = pnl_client.get_day_trades(target_date)
-
-    # Filter trades by ENTRY time in selected timezone and add % PnL
-    trades_with_pct = []
-    for trade in all_trades:
-        local_entry_time = convert_to_tz(trade.entry_time, use_utc)
-        if local_entry_time.date() == target_date:
-            # Calculate PnL as % of current equity (approximation)
-            pnl_pct = (trade.closed_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
-            trades_with_pct.append({
-                "trade": trade,
-                "pnl_pct": pnl_pct,
-            })
-
-    # Sort by entry time
-    trades_with_pct.sort(key=lambda t: t["trade"].entry_time)
-
-    # Get ALL open positions (not just today's)
-    all_open = pnl_client.get_open_positions()
-    open_positions_with_pct = []
-    for pos in all_open:
-        pnl_pct = (pos.unrealized_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
-        open_positions_with_pct.append({
-            "position": pos,
-            "pnl_pct": pnl_pct,
-        })
-
-    # Calculate stats (closed trades only)
-    total_pnl = sum(t["trade"].closed_pnl for t in trades_with_pct)
-    total_pnl_pct = (total_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
-    winning = [t for t in trades_with_pct if t["trade"].closed_pnl > 0]
-    losing = [t for t in trades_with_pct if t["trade"].closed_pnl <= 0]
-
-    # Unrealized PnL from open positions
-    unrealized_pnl = sum(p["position"].unrealized_pnl for p in open_positions_with_pct)
-    unrealized_pnl_pct = (unrealized_pnl / total_equity * 100) if total_equity > 0 else Decimal("0")
-
-    return templates.TemplateResponse(
-        "day.html",
-        {
-            "request": request,
-            "date": target_date,
-            "trades": trades_with_pct,
-            "open_positions": open_positions_with_pct,
-            "total_pnl": total_pnl,
-            "total_pnl_pct": total_pnl_pct,
-            "unrealized_pnl": unrealized_pnl,
-            "unrealized_pnl_pct": unrealized_pnl_pct,
-            "trade_count": len(trades_with_pct),
-            "winning_count": len(winning),
-            "losing_count": len(losing),
-            "win_rate": len(winning) / len(trades_with_pct) * 100 if trades_with_pct else 0,
-            "balance": total_equity,
-            "testnet": _config.bybit.testnet if _config else True,
-            "use_utc": use_utc,
-            "tz": tz.lower(),
-        },
-    )
 
 
 def _serialize_decimal(v: Decimal) -> str:
@@ -721,20 +563,38 @@ async def debug_raw_api(year: int, month: int):
         return {"error": str(e)}
 
 
-# Serve Angular SPA from /app/ path
+# Serve Angular SPA from root. MUST be registered last so /api/* and /ws/*
+# routes defined above take precedence.
 if ANGULAR_DIST.exists():
-    app.mount("/app/assets", StaticFiles(directory=ANGULAR_DIST / "assets"), name="ng-assets") if (ANGULAR_DIST / "assets").exists() else None
+    if (ANGULAR_DIST / "assets").exists():
+        app.mount(
+            "/assets",
+            StaticFiles(directory=ANGULAR_DIST / "assets"),
+            name="ng-assets",
+        )
 
-    @app.get("/app/{rest_of_path:path}")
-    async def serve_angular(rest_of_path: str):
+    @app.get("/{full_path:path}")
+    async def serve_angular(full_path: str):
         """Serve Angular SPA — static files or fallback to index.html."""
-        from fastapi.responses import FileResponse
+        # Never intercept API / WebSocket namespaces. FastAPI resolves specific
+        # routes first, but guard anyway in case of typos / missing endpoints.
+        if full_path.startswith(("api/", "ws/")):
+            from fastapi import HTTPException
 
-        # Try to serve the exact file (js, css, ico, etc.)
-        file_path = ANGULAR_DIST / rest_of_path
-        if rest_of_path and file_path.is_file():
-            return FileResponse(file_path)
-        # SPA fallback: serve index.html for all routes
+            raise HTTPException(status_code=404)
+
+        # Try to serve the exact file (js, css, ico, etc.) if it exists.
+        if full_path:
+            candidate = ANGULAR_DIST / full_path
+            try:
+                if candidate.is_file() and candidate.resolve().is_relative_to(
+                    ANGULAR_DIST.resolve()
+                ):
+                    return FileResponse(candidate)
+            except (OSError, ValueError):
+                pass
+
+        # SPA fallback: serve index.html for all client-side routes.
         return FileResponse(ANGULAR_DIST / "index.html")
 
 

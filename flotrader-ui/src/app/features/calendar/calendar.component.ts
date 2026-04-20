@@ -12,7 +12,7 @@ import { PnlColorPipe, PnlSignPipe } from '../../shared/pnl-color.pipe';
   template: `
     <!-- Account Banner -->
     @if (data()) {
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <!-- Balance -->
         <div class="card">
           <div class="card-label">Balance</div>
@@ -26,6 +26,16 @@ import { PnlColorPipe, PnlSignPipe } from '../../shared/pnl-color.pipe';
           </div>
           <div class="text-xs text-[var(--text-secondary)] mt-1">
             {{ data()!.month_data.month_trades }} trades
+          </div>
+        </div>
+        <!-- Win Rate -->
+        <div class="card">
+          <div class="card-label">Win Rate</div>
+          <div class="card-value font-mono" [ngClass]="winRateClass()">
+            {{ winRate() }}%
+          </div>
+          <div class="text-xs text-[var(--text-secondary)] mt-1">
+            {{ winCount() }}W / {{ lossCount() }}L
           </div>
         </div>
         <!-- Unrealized -->
@@ -190,6 +200,39 @@ export class CalendarComponent implements OnInit {
       return total.toFixed(2);
     }
     return this.data()?.total_unrealized_pct ?? '0';
+  });
+
+  winCount = computed(() =>
+    (this.data()?.calendar_days ?? []).reduce(
+      (sum, d) => sum + (d.stats?.winning_trades ?? 0),
+      0,
+    ),
+  );
+
+  lossCount = computed(() =>
+    (this.data()?.calendar_days ?? []).reduce(
+      (sum, d) => sum + (d.stats?.losing_trades ?? 0),
+      0,
+    ),
+  );
+
+  winRate = computed(() => {
+    const wins = this.winCount();
+    const losses = this.lossCount();
+    const total = wins + losses;
+    if (total === 0) return '—';
+    return ((wins / total) * 100).toFixed(1);
+  });
+
+  winRateClass = computed(() => {
+    const wins = this.winCount();
+    const losses = this.lossCount();
+    const total = wins + losses;
+    if (total === 0) return 'text-[var(--text-secondary)]';
+    const rate = (wins / total) * 100;
+    if (rate >= 60) return 'text-profit';
+    if (rate >= 40) return 'text-[var(--text-primary)]';
+    return 'text-loss';
   });
 
   constructor() {

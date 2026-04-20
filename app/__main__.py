@@ -47,7 +47,10 @@ def cli() -> None:
     help="Path to configuration file",
 )
 @click.option("--log-level", default="INFO", help="Logging level")
-def live(config: str, log_level: str) -> None:
+@click.option("--ui/--no-ui", default=True, help="Serve web UI alongside live trading")
+@click.option("--ui-host", default="127.0.0.1", help="UI server host")
+@click.option("--ui-port", default=8000, type=int, help="UI server port")
+def live(config: str, log_level: str, ui: bool, ui_host: str, ui_port: int) -> None:
     """Start live trading."""
     setup_logging(log_level)
     logger.info(f"Starting FloTrader v{__version__} in LIVE mode")
@@ -56,7 +59,7 @@ def live(config: str, log_level: str) -> None:
         cfg = Config.from_yaml(config)
         cfg.mode = Mode.LIVE
 
-        asyncio.run(_run_live(cfg))
+        asyncio.run(_run_live(cfg, ui_enabled=ui, ui_host=ui_host, ui_port=ui_port))
 
     except KeyboardInterrupt:
         logger.info("Shutting down...")
@@ -144,7 +147,12 @@ def ui(host: str, port: int, config: str) -> None:
     uvicorn.run(app, host=host, port=port)
 
 
-async def _run_live(config: Config) -> None:
+async def _run_live(
+    config: Config,
+    ui_enabled: bool = True,
+    ui_host: str = "127.0.0.1",
+    ui_port: int = 8000,
+) -> None:
     """Run live trading mode."""
     from app.adapters.bybit_adapter import BybitAdapter
     from app.adapters.live_data_feed import LiveDataFeed
@@ -190,9 +198,28 @@ async def _run_live(config: Config) -> None:
     await recorder.start(symbols=all_symbols)
     await trade_store.initialize()
 
+    ui_server = None
+    ui_task = None
+    if ui_enabled:
+        import uvicorn
+
+        from app.ui.server import app as ui_app
+
+        uv_cfg = uvicorn.Config(ui_app, host=ui_host, port=ui_port, log_level="info")
+        ui_server = uvicorn.Server(uv_cfg)
+        ui_task = asyncio.create_task(ui_server.serve(), name="ui-server")
+        logger.info(f"Web UI available at http://{ui_host}:{ui_port}")
+
     try:
         await engine.run_live()
     finally:
+        if ui_server is not None:
+            ui_server.should_exit = True
+        if ui_task is not None:
+            try:
+                await ui_task
+            except Exception as e:
+                logger.debug(f"UI server shutdown error: {e}")
         await recorder.stop()
         await telegram.stop()
         await trade_store.close()
