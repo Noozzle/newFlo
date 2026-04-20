@@ -64,6 +64,10 @@ class TradeStore:
         """)
 
         # Create fills table
+        # Note: `trade_id` here is the *journal* trade id (T000001),
+        # populated retrospectively when the parent trade is saved.
+        # `exec_id` stores the exchange execution id (Bybit execId / uuid).
+        # `client_order_id` lets us group partial fills of the same order.
         await self._db.execute("""
             CREATE TABLE IF NOT EXISTS fills (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,6 +75,8 @@ class TradeStore:
                 symbol TEXT NOT NULL,
                 order_id TEXT NOT NULL,
                 trade_id TEXT,
+                exec_id TEXT,
+                client_order_id TEXT,
                 side TEXT NOT NULL,
                 price TEXT NOT NULL,
                 qty TEXT NOT NULL,
@@ -81,8 +87,75 @@ class TradeStore:
             )
         """)
 
+        # Backfill new columns for databases that pre-date the schema change.
+        await self._ensure_fill_columns()
+
+        # Helpful indexes for the retro-linking UPDATE in save_trade.
+        await self._db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_fills_symbol_ts ON fills(symbol, timestamp)"
+        )
+        await self._db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_fills_client_order_id ON fills(client_order_id)"
+        )
+
+        # AI gate decisions table — logs every SKIP/HALF/FULL decision
+        # produced by the gate. Linked back to a trade via `trade_id` when
+        # a trade actually executes (populated by save_trade).
+        await self._db.execute("""
+            CREATE TABLE IF NOT EXISTS ai_gate_decisions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                symbol TEXT NOT NULL,
+                side TEXT NOT NULL,
+                score REAL,
+                action TEXT NOT NULL,
+                reason TEXT,
+                trade_id TEXT,
+                metadata TEXT
+            )
+        """)
+        await self._db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_gate_decisions_ts ON ai_gate_decisions(timestamp)"
+        )
+        await self._db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_gate_decisions_trade_id ON ai_gate_decisions(trade_id)"
+        )
+        await self._db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_gate_decisions_symbol_ts ON ai_gate_decisions(symbol, timestamp)"
+        )
+
         await self._db.commit()
         logger.info(f"Trade store initialized: {self._db_path}")
+
+    async def _ensure_fill_columns(self) -> None:
+        """Add `exec_id` / `client_order_id` columns on pre-existing DBs."""
+        assert self._db is not None
+        async with self._db.execute("PRAGMA table_info(fills)") as cursor:
+            rows = await cursor.fetchall()
+        existing = {row[1] for row in rows}
+        if "exec_id" not in existing:
+            await self._db.execute("ALTER TABLE fills ADD COLUMN exec_id TEXT")
+        if "client_order_id" not in existing:
+            await self._db.execute("ALTER TABLE fills ADD COLUMN client_order_id TEXT")
+
+    async def get_max_trade_counter(self) -> int:
+        """
+        Return the highest existing journal trade number (e.g. ``T000042`` -> 42).
+
+        Used by the portfolio to resume numbering across process restarts so we
+        don't silently overwrite older rows via ``INSERT OR REPLACE``.
+        """
+        if not self._db:
+            return 0
+        async with self._db.execute(
+            "SELECT trade_id FROM trades WHERE trade_id LIKE 'T%'"
+        ) as cursor:
+            rows = await cursor.fetchall()
+        max_n = 0
+        for (tid,) in rows:
+            if isinstance(tid, str) and tid.startswith("T") and tid[1:].isdigit():
+                max_n = max(max_n, int(tid[1:]))
+        return max_n
 
     async def close(self) -> None:
         """Close database connection."""
@@ -102,9 +175,14 @@ class TradeStore:
 
         now = datetime.utcnow().isoformat()
 
-        await self._db.execute(
+        # NOTE: we intentionally avoid `INSERT OR REPLACE` here. If a restart
+        # resets the in-memory trade counter, `INSERT OR REPLACE` would silently
+        # clobber older rows that share the same `trade_id`. `INSERT OR IGNORE`
+        # preserves history; callers can detect the collision via the logged
+        # warning below.
+        cursor = await self._db.execute(
             """
-            INSERT OR REPLACE INTO trades (
+            INSERT OR IGNORE INTO trades (
                 trade_id, symbol, side, entry_time, exit_time,
                 entry_price, exit_price, size, gross_pnl, fees,
                 slippage_estimate, net_pnl, exit_reason, hold_time_seconds,
@@ -130,9 +208,88 @@ class TradeStore:
                 now,
             ),
         )
+        if cursor.rowcount == 0:
+            logger.warning(
+                f"Trade id collision in store: {trade.trade_id} "
+                f"({trade.symbol} {trade.entry_time.isoformat()}) — row kept as-is."
+            )
+
+        # Link fills (entry + exit) to the journal trade_id.
+        # Match by symbol + timestamp window; a small tail buffer accounts for
+        # exit fills arriving moments after the bookkeeping close. Only rows
+        # that haven't been linked yet are updated.
+        window_end = (trade.exit_time + timedelta(seconds=30)).isoformat()
+        await self._db.execute(
+            """
+            UPDATE fills
+               SET trade_id = ?
+             WHERE symbol = ?
+               AND timestamp >= ?
+               AND timestamp <= ?
+               AND trade_id IS NULL
+            """,
+            (
+                trade.trade_id,
+                trade.symbol,
+                trade.entry_time.isoformat(),
+                window_end,
+            ),
+        )
+
+        # Link AI gate decisions to the journal trade_id. We look for a
+        # decision in a ±30s window around entry_time for the same symbol
+        # that hasn't been attached to any trade yet.
+        gate_window_start = (trade.entry_time - timedelta(seconds=30)).isoformat()
+        gate_window_end = (trade.entry_time + timedelta(seconds=30)).isoformat()
+        await self._db.execute(
+            """
+            UPDATE ai_gate_decisions
+               SET trade_id = ?
+             WHERE symbol = ?
+               AND timestamp >= ?
+               AND timestamp <= ?
+               AND trade_id IS NULL
+               AND action != 'skip'
+            """,
+            (
+                trade.trade_id,
+                trade.symbol,
+                gate_window_start,
+                gate_window_end,
+            ),
+        )
+
+        # Bug 3 fix: re-aggregate fees from all partial fills belonging to
+        # this trade. The caller (Portfolio.close_position) only sees the fee
+        # from the first entry fill + first exit fill, so for orders that
+        # executed in multiple partials the stored ``fees`` was systematically
+        # under-reported (often by 2-3x). Fills are the ground truth since
+        # each FillEvent carries its own ``execFee`` from Bybit.
+        async with self._db.execute(
+            "SELECT SUM(CAST(fee AS REAL)) FROM fills WHERE trade_id = ?",
+            (trade.trade_id,),
+        ) as cursor:
+            row = await cursor.fetchone()
+        recovered_fees: Decimal | None = None
+        if row and row[0] is not None:
+            recovered_fees = Decimal(str(row[0]))
+
+        if recovered_fees is not None and recovered_fees > trade.fees:
+            logger.info(
+                f"Recovered fees for {trade.trade_id} {trade.symbol}: "
+                f"{trade.fees} -> {recovered_fees} (from fills)"
+            )
+            # Mutate the in-memory Trade so downstream consumers (CSV, telegram,
+            # strategy event) see the corrected figure, then update the row.
+            trade.fees = recovered_fees
+            await self._db.execute(
+                "UPDATE trades SET fees = ?, net_pnl = ? WHERE trade_id = ?",
+                (str(trade.fees), str(trade.net_pnl), trade.trade_id),
+            )
+
         await self._db.commit()
 
-        # Also append to CSV
+        # Also append to CSV (after fee recovery so CSV matches SQLite).
         await self._append_trade_csv(trade)
 
         logger.debug(f"Saved trade: {trade.trade_id}")
@@ -140,6 +297,11 @@ class TradeStore:
     async def save_fill(self, fill: FillEvent) -> None:
         """
         Save a fill/execution.
+
+        The exchange execution id (Bybit ``execId``) is stored in ``exec_id``.
+        The journal ``trade_id`` (e.g. ``T000042``) is filled in later from
+        :meth:`save_trade` once the parent trade is closed — so here we leave
+        it ``NULL``.
 
         Args:
             fill: Fill event to save
@@ -152,15 +314,17 @@ class TradeStore:
         await self._db.execute(
             """
             INSERT INTO fills (
-                timestamp, symbol, order_id, trade_id, side,
-                price, qty, fee, fee_asset, realized_pnl, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                timestamp, symbol, order_id, trade_id, exec_id, client_order_id,
+                side, price, qty, fee, fee_asset, realized_pnl, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 fill.timestamp.isoformat(),
                 fill.symbol,
                 fill.order_id,
-                fill.trade_id,
+                None,  # journal trade_id is assigned by save_trade()
+                fill.trade_id,  # exchange execId / uuid
+                fill.client_order_id,
                 fill.side.value,
                 str(fill.price),
                 str(fill.qty),
@@ -168,6 +332,68 @@ class TradeStore:
                 fill.fee_asset,
                 str(fill.realized_pnl),
                 now,
+            ),
+        )
+        await self._db.commit()
+
+    async def save_gate_decision(
+        self,
+        timestamp: datetime,
+        symbol: str,
+        side: str,
+        action: str,
+        reason: str = "",
+        score: float | None = None,
+        features_snapshot: dict[str, Any] | None = None,
+        trade_id: str | None = None,
+    ) -> None:
+        """Persist an AI gate decision for post-hoc analysis / retune.
+
+        Args:
+            timestamp: Decision timestamp (matches signal.timestamp)
+            symbol: Trading pair
+            side: 'buy' / 'sell'
+            action: 'skip' / 'half' / 'full'
+            reason: Human-readable reason from GateDecision.reason
+            score: Scalar score (e.g. p_win); None if no model
+            features_snapshot: Feature dict snapshot (stored as JSON)
+            trade_id: Optional journal trade_id (if already known)
+        """
+        if not self._db:
+            raise RuntimeError("Trade store not initialized")
+
+        # Normalize features to JSON-safe primitives (Decimals -> str etc.)
+        meta_json: str | None = None
+        if features_snapshot is not None:
+            try:
+                safe: dict[str, Any] = {}
+                for k, v in features_snapshot.items():
+                    if isinstance(v, Decimal):
+                        safe[k] = str(v)
+                    elif isinstance(v, (int, float, str, bool)) or v is None:
+                        safe[k] = v
+                    else:
+                        safe[k] = str(v)
+                meta_json = json.dumps(safe)
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning(f"Failed to serialize gate features: {exc}")
+                meta_json = None
+
+        await self._db.execute(
+            """
+            INSERT INTO ai_gate_decisions (
+                timestamp, symbol, side, score, action, reason, trade_id, metadata
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                timestamp.isoformat(),
+                symbol,
+                side,
+                float(score) if score is not None else None,
+                action,
+                reason,
+                trade_id,
+                meta_json,
             ),
         )
         await self._db.commit()

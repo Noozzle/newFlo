@@ -135,21 +135,61 @@ class RiskManager:
                 reason="Invalid risk distance (SL too close or wrong side)",
             )
 
-        # Calculate position value and check costs
-        # Total round-trip cost = entry fee + exit fee + 2 * slippage
-        round_trip_cost_pct = self._costs.round_trip_cost_pct
+        # Fee-aware entry gate.
+        # Replaces the old ad-hoc `cost_vs_risk > 30%` cutoff with an EV-based
+        # check: compute expected net R after costs and skip if it falls below
+        # 1.5 (i.e. the realized edge after fees would not justify the trade).
+        #
+        #   total_cost_bps = 2 * fee_bps + slippage_bps   (round-trip)
+        #   slippage_bps   = rel_spread/2 * 1e4            (half-spread)
+        #   sl_bps         = sl_distance / entry * 1e4    (SL distance in bps)
+        #   expected_net_R = RR - total_cost_bps / sl_bps
+        #
+        # For Bybit taker fees ~5.5bps one side, RR=3, SL=20bps:
+        #   cost≈11bps, net_R = 3 - 11/20 = 2.45 → pass
+        # For SL=5bps: net_R = 3 - 11/5 = 0.8 → reject (cost drag too high).
+        fee_bps_per_side = self._costs.fee_exit_bps  # Bybit taker, one side
+        # rel_spread in decimal (e.g. 0.0001 = 1 bps) — prefer signal metadata,
+        # fall back to config slippage if missing.
+        raw_rel_spread = signal.metadata.get("rel_spread") if signal.metadata else None
+        if raw_rel_spread is None:
+            # TODO: expose rel_spread via order book snapshot in live mode
+            rel_spread = self._costs.slippage_bps / Decimal("10000")
+        else:
+            try:
+                rel_spread = Decimal(str(raw_rel_spread))
+            except (TypeError, ValueError, ArithmeticError):
+                rel_spread = self._costs.slippage_bps / Decimal("10000")
+        slippage_bps = rel_spread * Decimal("10000") / Decimal("2")
+        total_cost_bps = Decimal("2") * fee_bps_per_side + slippage_bps
 
-        # Check if costs are acceptable relative to risk
-        # Cost relative to risk = cost_pct * entry_price / risk_distance
-        cost_vs_risk = (round_trip_cost_pct * entry_price) / risk_per_unit
-        max_cost_vs_risk = Decimal("0.3")  # Max 30% of risk as costs
-
-        if cost_vs_risk > max_cost_vs_risk:
+        # Derive RR from the signal itself (honours per-signal RR variations)
+        # and guard against zero SL distance.
+        sl_bps = (risk_per_unit / entry_price) * Decimal("10000")
+        if sl_bps <= Decimal("0"):
             return SizeResult(
                 approved=False,
                 size=Decimal("0"),
                 risk_amount=Decimal("0"),
-                reason=f"Costs too high relative to SL distance ({cost_vs_risk:.1%} > {max_cost_vs_risk:.1%})",
+                reason="Invalid SL distance (0 bps)",
+            )
+        rr = signal.risk_reward_ratio
+        expected_net_r = rr - (total_cost_bps / sl_bps)
+        min_net_r = Decimal("1.5")
+        if expected_net_r < min_net_r:
+            logger.info(
+                f"Fee-aware reject: {signal.symbol} expected_net_R={expected_net_r:.2f} "
+                f"< {min_net_r} (sl_bps={sl_bps:.1f}, cost_bps={total_cost_bps:.1f}, "
+                f"rr={rr:.2f})"
+            )
+            return SizeResult(
+                approved=False,
+                size=Decimal("0"),
+                risk_amount=Decimal("0"),
+                reason=(
+                    f"Fee-aware reject: expected_net_R={expected_net_r:.2f} < {min_net_r} "
+                    f"(sl_bps={sl_bps:.1f}, cost_bps={total_cost_bps:.1f})"
+                ),
             )
 
         # Calculate position size based on risk percentage, scaled by DD level
@@ -157,6 +197,16 @@ class RiskManager:
         risk_amount = equity * (self._config.max_position_pct / 100) * dd_scale
         if dd_scale < Decimal("1"):
             logger.info(f"DD risk scaling: {dd_scale} (DD={self._portfolio.drawdown:.1f}%)")
+
+        # Per-symbol multiplier (composes with DD and AI gate scales).
+        # Unknown symbols default to 1.0. Configured via risk.per_symbol in
+        # config.yaml. Tuning based on live per-symbol P&L.
+        symbol_mult = self._per_symbol_multiplier(signal.symbol)
+        if symbol_mult != Decimal("1"):
+            logger.info(
+                f"Per-symbol risk mult: {signal.symbol}={symbol_mult}"
+            )
+        risk_amount = risk_amount * symbol_mult
 
         # Apply AI-gate risk_scale (SKIP=0.0, HALF=0.5, FULL=1.0) from signal metadata.
         try:
@@ -200,6 +250,23 @@ class RiskManager:
             risk_amount=risk_amount,
             reason="OK",
         )
+
+    def _per_symbol_multiplier(self, symbol: str) -> Decimal:
+        """Resolve per-symbol risk multiplier from config.
+
+        Unknown symbols return 1.0 (no-op). Composes with DD scale and
+        AI gate risk_scale via multiplication.
+        """
+        raw = self._config.per_symbol.get(symbol)
+        if raw is None:
+            return Decimal("1")
+        try:
+            return Decimal(str(raw))
+        except (TypeError, ValueError, ArithmeticError):
+            logger.warning(
+                f"Invalid per_symbol multiplier for {symbol}: {raw!r}, using 1.0"
+            )
+            return Decimal("1")
 
     def _dd_risk_scale(self, event_time: datetime | None = None) -> Decimal:
         """Return risk multiplier based on current drawdown level.

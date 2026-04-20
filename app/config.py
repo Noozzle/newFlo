@@ -197,6 +197,11 @@ class RiskConfig(BaseModel):
     dd_soft_pct: Decimal = Field(default=Decimal("10.0"), description="DD level where risk scaling begins (half risk)")
     dd_hard_pct: Decimal = Field(default=Decimal("20.0"), description="DD level where trading stops completely")
     dd_cooldown_minutes: int = Field(default=60, description="Pause after hitting hard DD limit before retrying at min risk")
+    per_symbol: dict[str, Decimal] = Field(
+        default_factory=dict,
+        description="Per-symbol risk multipliers applied to base risk amount "
+        "(e.g. {'SOLUSDT': 1.3} = SOL sized 1.3x; composes with AI gate risk_scale).",
+    )
 
 
 class CostsConfig(BaseModel):

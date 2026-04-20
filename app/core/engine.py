@@ -79,6 +79,7 @@ class Engine:
         self._data_feed = data_feed
         self._exchange = exchange
         self._strategy = strategy
+        self._trade_store = trade_store
 
         # Event bus - use provided or create new
         self._event_bus = event_bus or EventBus()
@@ -220,6 +221,24 @@ class Engine:
             # AI gate: SKIP / HALF / FULL
             t0 = time.perf_counter()
             decision = await self._ai_gate.decide(signal)
+
+            # Persist gate decision for post-hoc analysis / retune.
+            # Uses p_win as the scalar score (None if no model).
+            if self._trade_store is not None:
+                try:
+                    await self._trade_store.save_gate_decision(
+                        timestamp=signal.timestamp,
+                        symbol=signal.symbol,
+                        side=signal.side.value,
+                        action=decision.action.value,
+                        reason=decision.reason,
+                        score=decision.p_win,
+                        features_snapshot=signal.metadata,
+                        trade_id=None,
+                    )
+                except Exception as exc:
+                    logger.warning(f"Failed to persist AI gate decision: {exc}")
+
             if decision.action == GateAction.SKIP:
                 self._prof["signal"] += time.perf_counter() - t0
                 logger.info(f"AI gate SKIP: {signal.symbol} {signal.side.value} ({decision.reason})")

@@ -74,6 +74,16 @@ class Portfolio:
         self._peak_equity = balance
         self._daily_start_balance = balance
 
+    def initialize_trade_counter(self, start_from: int) -> None:
+        """
+        Resume the journal trade counter from a stored value.
+
+        Prevents trade_id collisions (e.g. re-using ``T000001``) after a
+        restart, which previously caused ``INSERT OR REPLACE`` in TradeStore
+        to silently clobber older rows.
+        """
+        self._trade_counter = max(self._trade_counter, int(start_from))
+
     @property
     def equity(self) -> Decimal:
         """Get current equity (balance + unrealized P&L)."""

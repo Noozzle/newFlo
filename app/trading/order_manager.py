@@ -321,9 +321,14 @@ class OrderManager:
             f"stop_order_type={event.stop_order_type}"
         )
 
-        # Save fill to trade store
+        # Save fill to trade store. Await rather than fire-and-forget so the
+        # row is durable before save_trade() runs its retro-link UPDATE and
+        # fee re-aggregation below — create_task made the ordering racy.
         if self._trade_store:
-            asyncio.create_task(self._trade_store.save_fill(event))
+            try:
+                await self._trade_store.save_fill(event)
+            except Exception as e:
+                logger.error(f"Failed to save fill: {e}")
 
         # Log pending entries for debugging
         logger.debug(f"Pending entries keys: {list(self._pending_entries.keys())}")
@@ -380,12 +385,19 @@ class OrderManager:
             elif is_tp:
                 exit_reason = "tp"
 
-            # Calculate slippage estimate
-            if position.side == Side.BUY:
-                slippage = (position.sl_price - event.price) if exit_reason == "sl" else Decimal("0")
+            # Calculate slippage estimate.
+            # Guard: `sl_price` may be 0 for reconciled positions (see
+            # OrderManager.reconcile()), in which case (event.price - 0) * qty
+            # collapses to the full notional and produces a catastrophic fake
+            # slippage figure. Fall back to 0 in that case.
+            if exit_reason == "sl" and position.sl_price > 0:
+                if position.side == Side.BUY:
+                    slippage = position.sl_price - event.price
+                else:
+                    slippage = event.price - position.sl_price
+                slippage = max(slippage, Decimal("0")) * event.qty
             else:
-                slippage = (event.price - position.sl_price) if exit_reason == "sl" else Decimal("0")
-            slippage = max(slippage, Decimal("0")) * event.qty
+                slippage = Decimal("0")
 
             # Close position
             trade = self._portfolio.close_position(
@@ -423,9 +435,13 @@ class OrderManager:
                     except Exception as e:
                         logger.error(f"Failed to send telegram exit notification: {e}")
 
-                # Save trade to store
+                # Save trade to store. Await so retro-link + fee recovery in
+                # save_trade see all durable fills from this _on_fill pass.
                 if self._trade_store:
-                    asyncio.create_task(self._trade_store.save_trade(trade))
+                    try:
+                        await self._trade_store.save_trade(trade)
+                    except Exception as e:
+                        logger.error(f"Failed to save trade: {e}")
 
             # Clean up pending exit tracking if present
             self._pending_exits.pop(symbol, None)
@@ -481,6 +497,15 @@ class OrderManager:
             today = datetime.now(timezone.utc).date()
             sl_count = await self._trade_store.get_daily_sl_count(today)
             self._risk_manager.reconstruct_daily_sl_count(sl_count, today)
+
+            # Resume trade_id numbering from max existing id so restarts don't
+            # recycle "T000001" and silently collide with historical rows.
+            try:
+                max_counter = await self._trade_store.get_max_trade_counter()
+                self._portfolio.initialize_trade_counter(max_counter)
+                logger.info(f"Resumed trade counter from T{max_counter:06d}")
+            except Exception as e:  # pragma: no cover - defensive
+                logger.warning(f"Could not resume trade counter: {e}")
 
         # Get open orders
         orders = await self._exchange.get_open_orders()

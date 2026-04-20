@@ -1,0 +1,2 @@
+trade_id,symbol,side,entry_time,exit_time,entry_price,exit_price,size,gross_pnl,fees,slippage_estimate,net_pnl,exit_reason,hold_time_seconds
+T000006,SUIUSDT,buy,2026-04-18T12:01:04.427871,2026-04-18T13:36:36.967408,0.9608,0.9607,10,-0.0010,0.096071,0.0090,-0.106071,sl,5732.539537
